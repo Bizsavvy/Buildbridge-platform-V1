@@ -61,7 +61,7 @@ export function Hero({ stats }: HeroProps) {
                   Browse Needs
                 </button>
               </Link>
-              <Link href="/onboarding" className="cursor-pointer">
+              <Link href="/register" className="cursor-pointer">
                 <button 
                   className="w-full sm:w-auto h-14 px-8 rounded-full font-bold text-lg transition-all border-2 flex items-center justify-center gap-2 hover:bg-surface-variant/50"
                   style={{ borderColor: 'var(--color-outline-variant)', color: 'var(--color-on-surface)' }}

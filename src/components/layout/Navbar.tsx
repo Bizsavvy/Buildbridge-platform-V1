@@ -63,7 +63,7 @@ export function Navbar() {
               </span>
             </Link>
             
-            <Link href="/onboarding" className="cursor-pointer">
+            <Link href="/register" className="cursor-pointer">
               <button 
                 className="h-10 px-6 rounded-[1.25rem] font-bold transition-all flex items-center justify-center hover:scale-[1.02] active:scale-[0.98]"
                 style={{ 
