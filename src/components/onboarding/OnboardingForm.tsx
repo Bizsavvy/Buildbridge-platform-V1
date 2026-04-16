@@ -104,8 +104,8 @@ export function OnboardingForm() {
     setLoading(true)
     setError(null)
     try {
-      // Demo Mode: Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Demo Mode: Simulate short network delay
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       // Auto-Login Logic
       let authResult;
@@ -123,6 +123,8 @@ export function OnboardingForm() {
       }
 
       if (authResult.success) {
+        // Persist name for demo persistence
+        localStorage.setItem("buildbridge_user_name", formData.full_name);
         router.push("/dashboard");
       } else {
         setError(authResult.error || "Failed to complete your profile.");

@@ -83,8 +83,9 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true)
     try {
-      // Demo Mode: Populate from demo session / mock data
-      const displayName = demoUser?.phone || demoUser?.email || "Demo Artisan"
+      // Demo Mode: Simulate short network delay
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const displayName = demoUser?.name || (typeof window !== "undefined" ? localStorage.getItem("buildbridge_user_name") : null) || demoUser?.phone || demoUser?.email || "Demo Artisan"
       setProfile({
         name: displayName,
         badge_level: "level_1_community_member",
@@ -97,7 +98,7 @@ export default function DashboardPage() {
       console.error(err)
     } finally {
       // Simulate brief loading for visual fidelity
-      setTimeout(() => setLoading(false), 600)
+      setTimeout(() => setLoading(false), 200)
     }
   }
 
@@ -224,7 +225,11 @@ export default function DashboardPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {needs.map(need => (
-                           <NeedCard key={need.id} need={{...need, profile}} />
+                           <NeedCard 
+                              key={need.id} 
+                              need={{...need, profile}} 
+                              onClick={() => router.push(`/dashboard/needs/${need.id}`)}
+                           />
                         ))}
                     </div>
                  </div>

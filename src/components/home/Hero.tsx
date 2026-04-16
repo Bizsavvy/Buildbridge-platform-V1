@@ -121,6 +121,7 @@ export function Hero({ stats }: HeroProps) {
                 src={`/images/hero/${item.img}.png`} 
                 alt={item.label} 
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                loading="lazy"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-start p-8">
                 <span className="text-white font-black text-xl tracking-wide uppercase">{item.label}</span>

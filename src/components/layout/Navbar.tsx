@@ -6,8 +6,10 @@ import { Menu, Hammer, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { MobileNav } from "./MobileNav"
 import { useDemoAuth } from "@/contexts/DemoAuthContext"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const { isAuthenticated, signOut, demoUser } = useDemoAuth();

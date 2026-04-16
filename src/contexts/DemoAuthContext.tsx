@@ -39,7 +39,12 @@ function loadDemoUser(): DemoUser | null {
   try {
     const stored = localStorage.getItem(DEMO_USER_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const user = JSON.parse(stored);
+      // Fallback to persisted name if missing in user object
+      if (!user.name) {
+        user.name = localStorage.getItem("buildbridge_user_name") || undefined;
+      }
+      return user;
     }
   } catch {
     // ignore
@@ -154,7 +159,7 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     }
 
     const user: DemoUser = {
-      name,
+      name: name || (typeof window !== "undefined" ? localStorage.getItem("buildbridge_user_name") || undefined : undefined),
       phone: cleanPhone,
       verifiedAt: Date.now(),
     };
@@ -177,7 +182,7 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     const user: DemoUser = {
-      name,
+      name: name || (typeof window !== "undefined" ? localStorage.getItem("buildbridge_user_name") || undefined : undefined),
       email,
       verifiedAt: Date.now(),
     };

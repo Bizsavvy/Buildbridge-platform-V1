@@ -6,7 +6,7 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="w-full bg-primary text-white pt-24 pb-12 px-4 sm:px-6 lg:px-8 mt-12 relative overflow-hidden">
+    <footer className="w-full bg-primary text-white pt-16 pb-10 px-4 sm:px-6 lg:px-8 mt-12 relative overflow-hidden">
       {/* Decorative Ornaments */}
       <div className="absolute top-0 left-0 w-full h-1 bg-yellow-400" />
       <div className="absolute top-12 right-12 w-64 h-64 rounded-full bg-white/5 blur-3xl pointer-events-none" />
@@ -60,16 +60,16 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col md:flex-row justify-between items-center gap-8">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-8 mt-12 pb-2">
           <div className="flex flex-col gap-3">
              <Link href="/" className="text-2xl font-black tracking-tight text-white flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-primary">
-                  <Hammer className="h-4 w-4" />
+                   <Hammer className="h-4 w-4" />
                 </div>
                 BuildBridge
              </Link>
-             <p className="text-xs font-bold text-white/50 uppercase tracking-widest">
-               Handcrafted in Lagos for the Future of Africa
+             <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em]">
+               &copy; {currentYear} BuildBridge Impact Platform. All Rights Reserved.
              </p>
           </div>
 
@@ -84,12 +84,6 @@ export function Footer() {
               <Instagram className="h-5 w-5" />
             </Link>
           </div>
-        </div>
-
-        <div className="mt-12 pt-8 border-t border-white/10 text-center md:text-left">
-           <p className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">
-             &copy; {currentYear} BuildBridge Impact Platform. All Rights Reserved.
-           </p>
         </div>
       </div>
     </footer>
