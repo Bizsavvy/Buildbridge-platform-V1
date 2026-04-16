@@ -106,6 +106,7 @@ export default async function NeedDetailPage({ params }: NeedPageProps) {
                     src={need.photo_url} 
                     alt={need.item_name} 
                     className="w-full h-full object-cover"
+                    loading="lazy"
                  />
               </div>
 
@@ -189,6 +190,7 @@ export default async function NeedDetailPage({ params }: NeedPageProps) {
                        src={need.profile.photo_url} 
                        alt={need.profile.name} 
                        className="h-14 w-14 rounded-full border-2 border-surface shadow-sm object-cover"
+                       loading="lazy"
                     />
                     <div className="flex flex-col">
                        <h3 className="text-title-medium font-black text-on-surface">{need.profile.name}</h3>

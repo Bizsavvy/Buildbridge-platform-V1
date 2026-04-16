@@ -83,8 +83,9 @@ export default function DashboardPage() {
   const fetchDashboardData = async () => {
     setLoading(true)
     try {
-      // Demo Mode: Populate from demo session / mock data
-      const displayName = demoUser?.phone || demoUser?.email || "Demo Artisan"
+      // Demo Mode: Simulate short network delay
+      await new Promise(resolve => setTimeout(resolve, 500))
+      const displayName = demoUser?.name || (typeof window !== "undefined" ? localStorage.getItem("buildbridge_user_name") : null) || demoUser?.phone || demoUser?.email || "Demo Artisan"
       setProfile({
         name: displayName,
         badge_level: "level_1_community_member",
@@ -97,7 +98,7 @@ export default function DashboardPage() {
       console.error(err)
     } finally {
       // Simulate brief loading for visual fidelity
-      setTimeout(() => setLoading(false), 600)
+      setTimeout(() => setLoading(false), 200)
     }
   }
 
@@ -152,31 +153,20 @@ export default function DashboardPage() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
            <div className="flex flex-col gap-2">
-              <h1 className="text-display-small font-black text-on-surface">
-                 Welcome back, <span className="text-primary">{(profile?.name || 'Artisan').split(' ')[0]}!</span>
-              </h1>
+               <h1 className="text-4xl md:text-5xl font-black text-on-surface tracking-tight">
+                  Welcome back, <span className="text-primary italic">{demoUser?.name?.split(' ')[0] || (profile?.name || 'Artisan').split(' ')[0]}!</span>
+               </h1>
               <p className="text-body-large text-on-surface-variant max-w-xl">
                  Manage your funding needs and build your trade reputation on BuildBridge.
               </p>
            </div>
            <div className="flex gap-4">
-              <Button variant="ghost" className="rounded-2xl h-14 w-14 border border-outline-variant">
-                 <Settings className="h-6 w-6" />
-              </Button>
-              <Link href="/dashboard/create-need" className="h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-lg bg-primary text-white flex items-center justify-center hover:opacity-90 transition-opacity">
+              <Link href="/dashboard/create-need" className="h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all">
                  <Plus className="h-6 w-6" />
                  New Funding Need
               </Link>
            </div>
         </div>
-
-        <TrustTracker 
-          currentLevel={badgeEnumMapping[profile?.badge_level || 'level_0_unverified']}
-          vouches={profile?.vouch_count || 0}
-          deliveries={profile?.delivered_count || 0}
-          onVerifyClick={() => setIsVerifying(true)}
-          onVouchRequest={handleVouchRequest}
-        />
 
         <AnimatePresence>
           {showCopied && (
@@ -192,11 +182,11 @@ export default function DashboardPage() {
           )}
         </AnimatePresence>
 
-        {/* Two-Column Insights */}
+        {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
            
            {/* Left: Your Active Needs */}
-           <div className="lg:col-span-8 flex flex-col gap-8">
+           <div className="lg:col-span-8 flex flex-col gap-8 order-2 lg:order-1">
               <div className="flex items-center justify-between">
                  <h2 className="text-display-small font-black text-on-surface">Active Needs</h2>
                  <Link href="/dashboard/needs" className="text-label-large font-bold text-primary flex items-center gap-1 hover:underline">
@@ -235,7 +225,11 @@ export default function DashboardPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {needs.map(need => (
-                           <NeedCard key={need.id} need={{...need, profile}} />
+                           <NeedCard 
+                              key={need.id} 
+                              need={{...need, profile}} 
+                              onClick={() => router.push(`/dashboard/needs/${need.id}`)}
+                           />
                         ))}
                     </div>
                  </div>
@@ -250,23 +244,43 @@ export default function DashboardPage() {
               )}
            </div>
 
-           {/* Right: Quick Stats & Trust Ladder */}
-           <div className="lg:col-span-4 flex flex-col gap-10">
+           {/* Right: Sidebar - Trust and Stats */}
+           <div className="lg:col-span-4 flex flex-col gap-8 order-1 lg:order-2">
               
-              {/* Quick Metrics */}
+              {/* Profile Card / Trust Tracker consolidated */}
+              <div className="flex flex-col gap-6">
+                 <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-black text-on-surface uppercase tracking-widest">
+                       Trust Standing
+                    </h3>
+                    <Button variant="ghost" className="h-8 w-8 p-0 rounded-full border border-outline-variant">
+                       <Settings className="h-4 w-4" />
+                    </Button>
+                 </div>
+                 
+                 <TrustTracker 
+                   currentLevel={badgeEnumMapping[profile?.badge_level || 'level_0_unverified']}
+                   vouches={profile?.vouch_count || 0}
+                   deliveries={profile?.delivered_count || 0}
+                   onVerifyClick={() => setIsVerifying(true)}
+                   onVouchRequest={handleVouchRequest}
+                 />
+              </div>
+
+              {/* Impact Snapshot */}
               <div className="p-8 bg-surface border border-outline-variant shadow-sm rounded-[2rem] flex flex-col gap-6">
-                 <h3 className="text-title-medium font-black text-on-surface uppercase tracking-widest text-label-small">
-                    Your Impact
+                 <h3 className="text-xs font-black text-on-surface uppercase tracking-[0.2em] opacity-60">
+                    Impact Snapshot
                  </h3>
                  <div className="flex flex-col gap-4">
-                    <div className="flex items-center justify-between p-4 bg-surface-variant/30 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 bg-surface-variant/20 rounded-2xl border border-white/50">
                        <div className="flex items-center gap-3">
                           <TrendingUp className="h-5 w-5 text-badge-2" />
                           <span className="text-body-medium font-bold">Funds Raised</span>
                        </div>
                        <span className="text-title-medium font-black">₦350,000</span>
                     </div>
-                    <div className="flex items-center justify-between p-4 bg-surface-variant/30 rounded-2xl">
+                    <div className="flex items-center justify-between p-4 bg-surface-variant/20 rounded-2xl border border-white/50">
                        <div className="flex items-center gap-3">
                           <Users className="h-5 w-5 text-badge-3" />
                           <span className="text-body-medium font-bold">Total Backers</span>
@@ -276,20 +290,25 @@ export default function DashboardPage() {
                  </div>
               </div>
 
-              {/* Small Ladder Teaser */}
-              <div className="p-8 bg-on-surface text-surface rounded-[2rem] flex flex-col gap-6 shadow-xl">
-                 <div className="flex items-center gap-3">
-                    <ShieldCheck className="h-6 w-6 text-primary" />
+              {/* Quick Actions / Trust Engine */}
+              <div className="p-8 bg-on-surface text-surface rounded-[2.5rem] flex flex-col gap-6 shadow-2xl shadow-on-surface/20 relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 p-4 opacity-10 -rotate-12 group-hover:rotate-0 transition-transform">
+                    <ShieldCheck className="w-20 h-20" />
+                 </div>
+                 <div className="flex items-center gap-3 relative z-10">
+                    <div className="h-10 w-10 rounded-full bg-primary flex items-center justify-center">
+                       <ShieldCheck className="h-6 w-6 text-white" />
+                    </div>
                     <h3 className="text-title-medium font-black">Trust Engine</h3>
                  </div>
-                 <p className="text-body-small opacity-80 leading-relaxed font-medium">
-                    "Platform Verified" tradespeople are funded **4x faster** than unverified members.
+                 <p className="text-sm opacity-80 leading-relaxed font-medium relative z-10">
+                    "Platform Verified" artisans are funded <span className="text-primary font-black">4x faster</span>. Complete your NIN verification now.
                  </p>
                  <Button 
                    onClick={() => setIsVerifying(true)} 
-                   className="w-full h-14 rounded-2xl gap-2 font-black text-on-surface bg-surface hover:bg-surface-variant/80 border-none"
+                   className="w-full h-14 rounded-2xl gap-2 font-black text-on-surface bg-white hover:bg-white/90 border-none transition-all relative z-10 shadow-xl"
                  >
-                    Get Level 4 Badge
+                    Verify NIN
                  </Button>
               </div>
 

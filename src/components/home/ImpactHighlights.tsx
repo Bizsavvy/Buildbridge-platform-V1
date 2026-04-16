@@ -56,6 +56,7 @@ export function ImpactHighlights() {
                     src={section.image} 
                     alt={section.title} 
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                    loading="lazy"
                   />
                 </div>
                 {/* Floating Badge */}

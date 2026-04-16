@@ -65,6 +65,7 @@ export function ImpactTeaser() {
                 src={story.image} 
                 alt={story.name} 
                 className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" 
+                loading="lazy"
               />
               {/* Overlay Content */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-10">

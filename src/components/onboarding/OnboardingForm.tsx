@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils"
  * Steps: Trade → Location → Photo → Story → Terms → /signup
  */
 const STEPS = [
+  { id: "identity", title: "Identity", desc: "How should we address you?" },
   { id: "trade", title: "Your Craft", desc: "Showcase your specialization" },
   { id: "location", title: "Your Roots", desc: "Where you build legacies" },
   // { id: "auth", title: "Secure Account", desc: "Protect your progress" }, // Skipped in demo
@@ -46,6 +47,7 @@ const TRADE_CATEGORIES = [
   { id: "plumber", label: "Plumber", icon: Droplets, color: "text-indigo-500", bg: "bg-indigo-100" },
   { id: "hair_stylist", label: "Barber", icon: Sparkles, color: "text-rose-500", bg: "bg-rose-100" },
   { id: "seamstress", label: "Seamstress", icon: Shirt, color: "text-pink-500", bg: "bg-pink-100" },
+  { id: "other", label: "Other", icon: UserPlus, color: "text-gray-500", bg: "bg-gray-100" },
 ]
 
 export function OnboardingForm() {
@@ -57,12 +59,14 @@ export function OnboardingForm() {
   const [user, setUser] = useState<any>(null)
   
   const voiceInput = useVoiceInput()
-  const { isAuthenticated } = useDemoAuth()
-
-  // OTP State removed in demo mode — auth handled by /signup page
+  const { signInDemoEmail, verifyDemoOtp } = useDemoAuth()
 
   const [formData, setFormData] = useState({
+    full_name: "",
+    email: "",
+    phone: "",
     trade_category: "",
+    custom_trade: "",
     location_state: "",
     location_lga: "",
     story: "",
@@ -70,8 +74,6 @@ export function OnboardingForm() {
     photo_file: null as File | null,
     agreed_to_terms: false
   })
-
-  // Auth step skip logic removed — step no longer exists in STEPS array
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -102,15 +104,34 @@ export function OnboardingForm() {
     setLoading(true)
     setError(null)
     try {
-      // Demo Mode: Bypassing real database and storage operations
-      // We simulate a network delay for visual fidelity
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Demo Mode: Simulate short network delay
+      await new Promise(resolve => setTimeout(resolve, 500))
       
-      // Redirect to signup for authentication (OTP handled there)
-      router.push("/signup")
+      // Auto-Login Logic
+      let authResult;
+      if (formData.email) {
+        authResult = await signInDemoEmail(formData.email, formData.full_name);
+      } else if (formData.phone) {
+        // For demo auto-login, we assume the user would have verified OTP
+        // but here we just simulate successful verification for the demo flow
+        authResult = await verifyDemoOtp(formData.phone, "123456", formData.full_name);
+      } else {
+        // Fallback if somehow no contact info
+        localStorage.setItem("buildbridge_temp_name", formData.full_name);
+        router.push("/signup");
+        return;
+      }
+
+      if (authResult.success) {
+        // Persist name for demo persistence
+        localStorage.setItem("buildbridge_user_name", formData.full_name);
+        router.push("/dashboard");
+      } else {
+        setError(authResult.error || "Failed to complete your profile.");
+      }
     } catch (err: any) {
       console.error("Onboarding error:", err)
-      setError(err.message || "Failed to save your profile.")
+      setError(err.message || "Something went wrong.")
     } finally {
       setLoading(false)
     }
@@ -119,7 +140,67 @@ export function OnboardingForm() {
   const renderStepContent = () => {
     // DEMO MODE: Steps are now 0=Trade, 1=Location, 2=Photo, 3=Story, 4=Terms
     switch (currentStep) {
-      case 0: // Trade
+      case 0: // Identity
+        return (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="w-full max-w-lg mx-auto"
+          >
+            <div className="mb-12 text-center">
+              <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest mb-6 border border-primary/20">
+                Phase 0: Awareness
+              </span>
+              <h1 className="text-4xl font-black text-on-surface mb-4">What shall we <span className="text-primary italic">call you?</span></h1>
+              <p className="text-lg text-on-surface-variant font-medium">Your name is the first brick in the bridge of trust.</p>
+            </div>
+
+            <div className="bg-white/70 backdrop-blur-xl p-8 rounded-[3rem] border border-white/50 shadow-2xl flex flex-col gap-6">
+              <div className="flex flex-col gap-3">
+                <label className="text-sm font-black text-on-surface uppercase tracking-widest px-2">Full Name</label>
+                <Input 
+                  placeholder="e.g. Kolawole Segun"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  className="h-14 rounded-3xl border-2 border-outline-variant bg-white px-6 text-on-surface font-bold focus:border-primary transition-all outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 flex flex-col gap-3">
+                  <label className="text-sm font-black text-on-surface uppercase tracking-widest px-2">Phone</label>
+                  <Input 
+                    placeholder="080 123 4567"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="h-14 rounded-3xl border-2 border-outline-variant bg-white px-6 text-on-surface font-bold focus:border-primary transition-all outline-none"
+                  />
+                </div>
+                <div className="flex-1 flex flex-col gap-3">
+                  <label className="text-sm font-black text-on-surface uppercase tracking-widest px-2">Email (Optional)</label>
+                  <Input 
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="h-14 rounded-3xl border-2 border-outline-variant bg-white px-6 text-on-surface font-bold focus:border-primary transition-all outline-none"
+                  />
+                </div>
+              </div>
+
+              <Button 
+                onClick={nextStep} 
+                disabled={!formData.full_name || formData.full_name.length < 3 || (!formData.phone && !formData.email)}
+                className="h-14 rounded-full text-lg w-full mt-4"
+              >
+                Continue
+                <ChevronRight className="h-5 w-5 ml-2" />
+              </Button>
+            </div>
+          </motion.div>
+        )
+
+      case 1: // Trade
         return (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -131,7 +212,7 @@ export function OnboardingForm() {
               <span className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest mb-6 border border-primary/20">
                 Phase 1: Discovery
               </span>
-              <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-4">What IS your <span className="text-primary italic">Craft?</span></h1>
+              <h1 className="text-4xl md:text-5xl font-black text-on-surface mb-4">What IS your <span className="text-primary italic">Craft, {formData.full_name.split(' ')[0]}?</span></h1>
               <p className="text-lg text-on-surface-variant font-medium">Select the skill that defines your legacy.</p>
             </div>
             
@@ -141,7 +222,7 @@ export function OnboardingForm() {
                   key={trade.id}
                   onClick={() => {
                     setFormData({ ...formData, trade_category: trade.id })
-                    nextStep()
+                    if (trade.id !== 'other') nextStep()
                   }}
                   className={cn(
                     "flex flex-col items-center justify-center aspect-square p-4 rounded-[2rem] border-2 transition-all group relative overflow-hidden",
@@ -155,10 +236,34 @@ export function OnboardingForm() {
                 </button>
               ))}
             </div>
+
+            {formData.trade_category === 'other' && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="mt-8 max-w-md mx-auto w-full"
+              >
+                <div className="flex flex-col gap-3">
+                   <label className="text-xs font-black text-on-surface uppercase tracking-widest px-2">Specify your trade</label>
+                   <div className="flex gap-3">
+                      <Input 
+                        placeholder="e.g. Graphic Designer, Farmer..."
+                        value={formData.custom_trade}
+                        onChange={(e) => setFormData({ ...formData, custom_trade: e.target.value })}
+                        className="h-14 rounded-2xl flex-grow"
+                        autoFocus
+                      />
+                      <Button onClick={nextStep} disabled={!formData.custom_trade} className="h-14 w-14 rounded-2xl p-0">
+                         <ChevronRight className="h-6 w-6" />
+                      </Button>
+                   </div>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         )
 
-      case 1: // Location (Step 2)
+      case 2: // Location
         return (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -218,9 +323,7 @@ export function OnboardingForm() {
           </motion.div>
         )
 
-      // case 2 (Auth/OTP) removed — handled by /signup page
-
-      case 2: // Photo (was case 3)
+      case 3: // Photo
         return (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -240,7 +343,7 @@ export function OnboardingForm() {
                <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all" />
                <Avatar 
                 src={formData.photo_url} 
-                name={user?.email || "Artisan"} 
+                name={formData.full_name || "Artisan"} 
                 size="lg" 
                 className="h-56 w-56 border-8 border-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] relative" 
               />
@@ -264,7 +367,7 @@ export function OnboardingForm() {
           </motion.div>
         )
 
-      case 3: // Story (was case 4)
+      case 4: // Story
         return (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -339,7 +442,7 @@ export function OnboardingForm() {
           </motion.div>
         )
 
-      case 4: // Terms & Submit (was case 5)
+      case 5: // Terms & Submit
         return (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}

@@ -10,19 +10,22 @@ import {
   Calendar, 
   Heart, 
   ShieldCheck,
-  MoreHorizontal
+  MoreHorizontal,
+  CheckCircle2
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type Need, type Profile } from "@/types"
 import { TRADE_ICONS_MAP } from "@/lib/constants"
 
+import Link from "next/link"
+
 interface NeedCardProps {
   need: Need & { profile?: Profile & { name?: string } };
   className?: string;
-  onBack?: () => void;
+  onClick?: () => void;
 }
 
-export function NeedCard({ need, className, onBack }: NeedCardProps) {
+export function NeedCard({ need, className, onClick }: NeedCardProps) {
   const formattedCost = new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency: "NGN",
@@ -30,6 +33,7 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
   }).format(need.item_cost / 100);
 
   const percentage = (need.funded_amount / need.item_cost) * 100;
+  const isCompleted = need.status === 'completed' || percentage >= 100;
   
   const deadlineDate = new Date(need.deadline);
   const today = new Date();
@@ -47,7 +51,12 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
   return (
     <Card 
       hoverLift 
-      className={cn("overflow-hidden flex flex-col h-full bg-white rounded-[2rem] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)]", className)}
+      onClick={onClick}
+      className={cn(
+        "overflow-hidden flex flex-col h-full bg-white rounded-[2rem] border-none shadow-[0_8px_30px_rgb(0,0,0,0.04)] cursor-pointer group transition-all", 
+        isCompleted && "ring-2 ring-primary/20 bg-primary/5",
+        className
+      )}
     >
       {/* Visual Header */}
       <div className="relative aspect-[16/10] w-full overflow-hidden">
@@ -55,7 +64,8 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
           <img
             src={need.photo_url}
             alt={need.item_name}
-            className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center bg-surface-variant/30">
@@ -68,6 +78,14 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
           <TradeIcon className="h-3.5 w-3.5 text-primary" />
           {need.profile?.trade_category?.replace("_", " ")}
         </div>
+
+        {/* Status Badge */}
+        {isCompleted && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-xl animate-pulse">
+            <CheckCircle2 className="h-3 w-3" />
+            Project Completed
+          </div>
+        )}
 
         {/* Amount Tooltip-like Badge */}
         <div className="absolute bottom-4 right-4 rounded-2xl px-4 py-2 text-sm font-black bg-yellow-400 text-black shadow-xl">
@@ -103,7 +121,7 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
 
         {/* Need Story */}
         <div className="flex flex-col gap-2">
-           <h4 className="text-xl font-black leading-[1.1] text-on-surface">
+           <h4 className="text-xl font-black leading-[1.1] text-on-surface group-hover:text-primary transition-colors">
              {need.item_name}
            </h4>
            <p className="text-sm line-clamp-2 leading-relaxed font-medium text-on-surface-variant">
@@ -132,8 +150,8 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
                 <span className="text-[10px] uppercase font-black tracking-widest text-on-surface-variant mb-1 block">
                    Days Left
                 </span>
-                <span className="text-sm font-black text-on-surface bg-surface-variant/30 px-3 py-1 rounded-full">
-                   {daysRemaining}
+                <span className="text-sm font-black text-on-surface bg-on-surface-variant/10 px-3 py-1 rounded-full">
+                   {isCompleted ? "Ended" : daysRemaining}
                 </span>
              </div>
           </div>
@@ -141,10 +159,10 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
           <div className="relative h-3 w-full bg-surface-variant/20 rounded-full overflow-hidden">
             <motion.div 
                initial={{ width: 0 }}
-               whileInView={{ width: `${percentage}%` }}
+               whileInView={{ width: `${Math.min(100, percentage)}%` }}
                viewport={{ once: true }}
                transition={{ duration: 1, ease: "easeOut" }}
-               className="h-full bg-primary rounded-full"
+               className={cn("h-full rounded-full", isCompleted ? "bg-primary" : "bg-primary")}
             />
           </div>
 
@@ -164,10 +182,12 @@ export function NeedCard({ need, className, onBack }: NeedCardProps) {
              </div>
           </div>
           <Button 
-            onClick={(e) => { e.stopPropagation(); onBack?.(); }} 
-            className="rounded-full px-8 font-black text-xs shadow-xl shadow-primary/20 transition-all hover:-translate-y-1 bg-primary text-white"
+            className={cn(
+               "rounded-full px-8 font-black text-xs shadow-xl transition-all hover:-translate-y-1",
+               isCompleted ? "bg-primary/10 text-primary shadow-none" : "bg-primary text-white shadow-primary/20"
+            )}
           >
-            Back Now
+            {isCompleted ? "View Impact" : "Fund Now"}
           </Button>
         </div>
       </div>
