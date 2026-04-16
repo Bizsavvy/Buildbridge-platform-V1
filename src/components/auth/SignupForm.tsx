@@ -75,7 +75,6 @@ export default function SignupForm() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (!/^[0-9]*$/.test(value)) return;
-
     const newOtp = [...otp]
     newOtp[index] = value.substring(value.length - 1)
     setOtp(newOtp)

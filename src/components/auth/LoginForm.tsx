@@ -96,7 +96,6 @@ export default function LoginForm() {
   const handleOtpPaste = (e: React.ClipboardEvent) => {
     e.preventDefault()
     const pastedData = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, 6)
-    
     if (pastedData) {
       const newOtp = [...otp]
       for (let i = 0; i < pastedData.length; i++) {
@@ -110,7 +109,6 @@ export default function LoginForm() {
     }
   }
 
-  // Form submission for OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     const token = otp.join("")
