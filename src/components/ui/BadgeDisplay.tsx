@@ -33,23 +33,25 @@ export function BadgeDisplay() {
   ]
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
-         <h2 className="text-display-small font-black text-on-surface">The Trust Ladder</h2>
-         <p className="text-body-large text-on-surface-variant">Build your reputation to unlock higher funding limits and faster payouts.</p>
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center gap-3">
+         <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <Info className="h-4 w-4" />
+         </div>
+         <h2 className="text-xl font-black text-on-surface">The Trust Ladder</h2>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         {levels.map((item) => (
-          <Card key={item.level} className="p-5 flex flex-col gap-4 bg-surface border-outline-variant/30 hover:border-primary/50 transition-all group">
-             <Badge level={item.level} />
-             <div className="flex flex-col gap-1.5">
-                <p className="text-label-small uppercase font-black text-on-surface-variant tracking-widest">Requirement</p>
-                <p className="text-body-small font-medium text-on-surface leading-snug">{item.criteria}</p>
+          <Card key={item.level} className="p-4 flex flex-col gap-3 bg-surface border-outline-variant/30 hover:border-primary/50 transition-all group shadow-sm">
+             <Badge level={item.level} className="scale-90 origin-left" />
+             <div className="flex flex-col gap-1">
+                <p className="text-[10px] uppercase font-black text-on-surface-variant tracking-widest opacity-60">Criteria</p>
+                <p className="text-[11px] font-bold text-on-surface leading-tight line-clamp-2">{item.criteria}</p>
              </div>
-             <div className="p-3 bg-surface-variant/30 rounded-xl mt-auto">
-                <p className="text-label-small font-bold text-primary mb-1">Impact:</p>
-                <p className="text-body-small text-on-surface-variant italic">{item.impact}</p>
+             <div className="p-2.5 bg-surface-variant/20 rounded-lg mt-auto">
+                <p className="text-[10px] font-black text-primary uppercase tracking-tighter mb-0.5">Impact</p>
+                <p className="text-[10px] text-on-surface-variant font-medium leading-tight">{item.impact}</p>
              </div>
           </Card>
         ))}

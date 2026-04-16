@@ -2,14 +2,17 @@
 
 import * as React from "react"
 import Link from "next/link"
-import Image from "next/image"
-import { Menu } from "lucide-react"
+import { Menu, Hammer, LogOut, User } from "lucide-react"
 import { Button } from "@/components/ui/Button"
 import { MobileNav } from "./MobileNav"
+import { useDemoAuth } from "@/contexts/DemoAuthContext"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
+  const router = useRouter();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const { isAuthenticated, signOut, demoUser } = useDemoAuth();
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -77,18 +80,45 @@ export function Navbar() {
 
           {/* Right Action Area */}
           <div className="flex items-center gap-4">
-            <Link href="/login" className={`hidden sm:flex group cursor-pointer text-sm font-bold transition-colors duration-300 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
-              Log In
-            </Link>
-            
-            <Link 
-              href="/onboarding" 
-              className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${
-                isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
-              }`}
-            >
-              Get Started
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link 
+                  href="/dashboard" 
+                  className={`hidden sm:flex group cursor-pointer text-sm font-black items-center gap-2 transition-colors duration-300 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}
+                >
+                  <User className="h-4 w-4" />
+                  {demoUser?.name?.split(' ')[0] || "Dashboard"}
+                </Link>
+                
+                <button
+                  onClick={() => {
+                    signOut();
+                    router.push("/");
+                  }}
+                  className={`hidden sm:flex h-11 px-6 rounded-full font-extrabold text-xs transition-all items-center justify-center gap-2 hover:bg-error/5 hover:text-error border border-outline-variant/50 ${
+                    isScrolled ? 'text-on-surface-variant' : 'text-on-surface-variant'
+                  }`}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" className={`hidden sm:flex group cursor-pointer text-sm font-bold transition-colors duration-300 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
+                  Log In
+                </Link>
+                
+                <Link 
+                  href="/onboarding" 
+                  className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${
+                    isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
+                  }`}
+                >
+                  Get Started
+                </Link>
+              </>
+            )}
 
             <button 
               className={`md:hidden p-2 transition-colors cursor-pointer ${isScrolled ? 'text-on-surface-variant' : 'text-on-surface'}`}

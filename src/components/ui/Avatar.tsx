@@ -36,6 +36,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
             src={src}
             alt={name || "Avatar"}
             className="aspect-square h-full w-full object-cover"
+            loading="lazy"
             onError={(e) => {
                e.currentTarget.style.display = 'none';
             }}

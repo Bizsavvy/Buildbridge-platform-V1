@@ -61,60 +61,62 @@ export function TrustTracker({ currentLevel, vouches, deliveries, onVerifyClick,
   const next = getNextMilestone()
 
   return (
-    <Card className="p-8 bg-surface-variant/20 border-outline-variant/30 shadow-none rounded-[2rem] overflow-hidden">
-      <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
-        
-        {/* Current Status */}
-        <div className="flex flex-col gap-4 min-w-[200px]">
-           <p className="text-label-small uppercase font-black text-on-surface-variant tracking-widest">Your Trust Tier</p>
-           <div className="relative inline-flex">
-              <Badge level={currentLevel} className="scale-125 origin-left py-2 px-4" />
-           </div>
-           <p className="text-body-small text-on-surface-variant italic mt-2">
-             “Trust is the currency of BuildBridge.”
-           </p>
-        </div>
+    <Card className="p-6 bg-white border border-outline-variant/50 shadow-sm rounded-[2rem] overflow-hidden flex flex-col gap-6">
+      {/* Current Status Header */}
+      <div className="flex items-center justify-between">
+         <div className="flex flex-col gap-1">
+            <p className="text-[10px] uppercase font-black text-on-surface-variant tracking-[0.2em] opacity-60 flex items-center gap-1.5">
+               <ShieldCheck className="h-3 w-3" />
+               Trust Tier
+            </p>
+            <div className="relative inline-flex mt-1">
+               <Badge level={currentLevel} className="scale-110 origin-left" />
+            </div>
+         </div>
+         {next?.progress === 100 && (
+            <div className="h-10 w-10 rounded-full bg-success/10 flex items-center justify-center text-success">
+               <CheckCircle2 className="h-6 w-6" />
+            </div>
+         )}
+      </div>
 
-        {/* Divider */}
-        <div className="hidden md:block h-24 w-px bg-outline-variant/30" />
-
-        {/* Next Step Progress */}
-        <div className="flex-grow flex flex-col gap-6">
-           <div className="flex justify-between items-end">
-              <div className="flex flex-col gap-1">
-                 <p className="text-label-small uppercase font-black text-primary tracking-widest">Next Milestone</p>
-                 <h3 className="text-title-medium font-black text-on-surface">{next?.title}</h3>
-              </div>
-              <span className="text-label-large font-black text-primary">{Math.min(100, Math.round(next?.progress || 0))}%</span>
-           </div>
-           
-           <div className="flex flex-col gap-3">
-              <ProgressBar percentage={next?.progress || 0} className="h-3 bg-white" />
-              <div className="flex items-center gap-2 text-body-medium text-on-surface-variant font-medium">
-                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                 {next?.task}
-              </div>
-           </div>
-           
-           <div className="flex gap-4">
-              {next?.isAction ? (
-                <Button onClick={onVerifyClick} className="rounded-xl px-6 gap-2">
-                   <Lock className="h-4 w-4" />
-                   {next.cta}
-                </Button>
-              ) : (
-                 <Button variant="ghost" onClick={onVouchRequest} className="rounded-xl px-4 gap-2 border border-outline-variant hover:bg-surface">
-                   {next?.cta}
-                   <ArrowRight className="h-4 w-4" />
-                </Button>
-              )}
-              <Button variant="ghost" className="rounded-xl px-4 gap-2 text-on-surface-variant opacity-60">
-                 How it works
-                 <ExternalLink className="h-3 w-3" />
+      {/* Next Step Progress Area */}
+      <div className="flex flex-col gap-5 p-5 bg-surface-variant/20 rounded-3xl border border-white/50">
+         <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-0.5">
+               <p className="text-[10px] uppercase font-black text-primary tracking-widest opacity-80">Next Milestone</p>
+               <h3 className="text-sm font-black text-on-surface">{next?.title}</h3>
+            </div>
+            <span className="text-xs font-black text-primary bg-white px-2 py-0.5 rounded-lg border border-primary/10">
+               {Math.min(100, Math.round(next?.progress || 0))}%
+            </span>
+         </div>
+         
+         <div className="flex flex-col gap-3">
+            <ProgressBar percentage={next?.progress || 0} className="h-2.5 bg-white shadow-inner" />
+            <div className="flex items-center gap-2 text-xs text-on-surface-variant font-bold leading-tight">
+               <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse shrink-0" />
+               {next?.task}
+            </div>
+         </div>
+         
+         <div className="flex flex-col gap-2 pt-1">
+            {next?.isAction ? (
+              <Button onClick={onVerifyClick} className="w-full rounded-xl py-5 h-auto text-xs font-black uppercase tracking-widest gap-2 shadow-lg shadow-primary/20">
+                 <Lock className="h-3.5 w-3.5" />
+                 {next.cta}
               </Button>
-           </div>
-        </div>
-
+            ) : (
+               <Button onClick={onVouchRequest} className="w-full rounded-xl py-5 h-auto text-xs font-black uppercase tracking-widest gap-2 bg-primary/5 text-primary hover:bg-primary/10 border border-primary/10 shadow-none">
+                 {next?.cta}
+                 <ArrowRight className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <Button variant="ghost" className="w-full h-8 text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40 hover:text-primary transition-colors">
+               Trust Logic Specs
+               <ExternalLink className="h-3 w-3 ml-1.5" />
+            </Button>
+         </div>
       </div>
     </Card>
   )
