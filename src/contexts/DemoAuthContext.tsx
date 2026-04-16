@@ -8,6 +8,7 @@ const DEMO_OTP_KEY = "buildbridge_demo_otp";
 const DEMO_COOKIE_NAME = "buildbridge_demo_session";
 
 interface DemoUser {
+  name?: string;
   phone?: string;
   email?: string;
   verifiedAt: number;
@@ -23,8 +24,8 @@ interface DemoAuthContextType {
   demoUser: DemoUser | null;
   otpSession: DemoOtpSession | null;
   sendDemoOtp: (phone: string) => Promise<{ success: boolean; error?: string }>;
-  verifyDemoOtp: (phone: string, token: string) => Promise<{ success: boolean; error?: string }>;
-  signInDemoEmail: (email: string) => Promise<{ success: boolean; error?: string }>;
+  verifyDemoOtp: (phone: string, token: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  signInDemoEmail: (email: string, name?: string) => Promise<{ success: boolean; error?: string }>;
   clearDemoSession: () => void;
   signOut: () => void;
 }
@@ -126,7 +127,7 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     return { success: true };
   }, []);
 
-  const verifyDemoOtp = useCallback(async (phone: string, token: string) => {
+  const verifyDemoOtp = useCallback(async (phone: string, token: string, name?: string) => {
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     let cleanPhone = phone.trim();
@@ -153,6 +154,7 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     }
 
     const user: DemoUser = {
+      name,
       phone: cleanPhone,
       verifiedAt: Date.now(),
     };
@@ -170,11 +172,12 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     saveOtpSession(null);
   }, []);
 
-  const signInDemoEmail = useCallback(async (email: string) => {
+  const signInDemoEmail = useCallback(async (email: string, name?: string) => {
     // Simulation delay
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     const user: DemoUser = {
+      name,
       email,
       verifiedAt: Date.now(),
     };

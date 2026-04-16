@@ -41,6 +41,16 @@ export default function SignupForm() {
   
   // Timer State
   const [timeLeft, setTimeLeft] = useState(300)
+  
+  // Temp data from onboarding
+  const [tempName, setTempName] = useState<string | undefined>(undefined)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("buildbridge_temp_name");
+      if (stored) setTempName(stored);
+    }
+  }, [])
 
   useEffect(() => {
     let timer: any
@@ -88,8 +98,9 @@ export default function SignupForm() {
     setErrorMsg(null)
 
     // Demo Mode: Accept any email/password
-    const result = await signInDemoEmail(email)
+    const result = await signInDemoEmail(email, tempName)
     if (result.success) {
+      localStorage.removeItem("buildbridge_temp_name")
       router.push(redirectPath)
     } else {
       setErrorMsg(result.error || "Signup failed.")
@@ -135,9 +146,10 @@ export default function SignupForm() {
     setIsLoading(true)
     setErrorMsg(null)
 
-    const result = await verifyDemoOtp(formattedPhone, token)
+    const result = await verifyDemoOtp(formattedPhone, token, tempName)
     
     if (result.success) {
+      localStorage.removeItem("buildbridge_temp_name")
       router.push(redirectPath)
     } else {
       setErrorMsg(result.error || "Invalid OTP. Please try again.")
