@@ -543,6 +543,28 @@ export default function NeedCreationFlow() {
     setSubmitError("")
     
     try {
+      // Validate required form data before proceeding
+      if (!formData.state) {
+        throw new Error("State is required. Please go back to the Location & Trade step.")
+      }
+      if (!formData.lga) {
+        throw new Error("Local Government Area is required. Please go back to the Location & Trade step.")
+      }
+      if (!formData.tradeCategory) {
+        throw new Error("Trade category is required. Please go back to the Location & Trade step.")
+      }
+      if (!formData.goalAmount || parseFloat(formData.goalAmount) <= 0) {
+        throw new Error("Valid goal amount is required. Please go back to the Goal Amount step.")
+      }
+      if (!formData.story || formData.story.trim().length < 30) {
+        throw new Error("Story is required and must be at least 30 words. Please go back to the Story step.")
+      }
+      if (!formData.impactStatement) {
+        throw new Error("Impact statement is required. Please go back to the AI Impact Statement step.")
+      }
+      if (!formData.needTitle || formData.needTitle.length < 10) {
+        throw new Error("Need title is required and must be at least 10 characters. Please go back to the Need Title step.")
+      }
       // 1. Get current user
       console.log("Getting current user...")
       const { data: { user }, error: userError } = await supabase.auth.getUser()
@@ -568,13 +590,14 @@ export default function NeedCreationFlow() {
         const tradeCategoryId = getTradeCategoryId(formData.tradeCategory)
         const { data: newProfile, error: createError } = await supabase
           .from('profiles')
-          .insert({
-            user_id: user.id,
-            trade_category: tradeCategoryId as any,
-            trade_other_description: formData.tradeCategory === "Other" ? formData.customTrade : null,
-            location_state: formData.state.toLowerCase().replace(/\s+/g, '_') as any,
-            location_lga: formData.lga,
-          })
+           .insert({
+             user_id: user.id,
+             full_name: formData.fullName || '',
+             trade_category: tradeCategoryId as any,
+             trade_other_description: formData.tradeCategory === "Other" ? formData.customTrade : null,
+             location_state: formData.state.toLowerCase().replace(/\s+/g, '_') as any,
+             location_lga: formData.lga,
+           })
           .select('id')
           .single()
         
@@ -599,7 +622,10 @@ export default function NeedCreationFlow() {
         profileId = profile.id
       }
       
-      console.log("Profile ID:", profileId)
+       console.log("Profile ID:", profileId)
+       if (!profileId) {
+         throw new Error("Profile ID is missing")
+       }
       
        // 3. Use uploaded photo URL or default placeholder
       const photoUrl = formData.photoUrl || "/images/placeholder-need.jpg"
@@ -612,19 +638,15 @@ export default function NeedCreationFlow() {
         item_name: formData.needTitle || formData.aiPrompts.equipment || "Equipment",
         item_cost: parseFloat(formData.goalAmount), // DECIMAL(12,2) in Naira
         photo_url: photoUrl,
-        photo_geotag_lat: null,
-        photo_geotag_lng: null,
-        photo_uploaded_at: new Date().toISOString(),
         story: formData.story.slice(0, 150), // Max 150 chars
         impact_statement: formData.impactStatement.slice(0, 200), // Max 200 chars
-        impact_statement_source: 'ai_generated',
         deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
         status: 'pending_review',
         published_at: new Date().toISOString(),
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
-      console.log("Need data:", needData)
+       console.log("Need data:", needData, "profileId:", profileId, "userId:", user?.id)
       
       const { error: needError } = await supabase
         .from('needs')
@@ -639,8 +661,9 @@ export default function NeedCreationFlow() {
       // 5. Redirect to success screen
       setCurrentStep(STEPS.length - 1) // Share screen
     } catch (error) {
-      console.error("Failed to submit need:", error)
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit need. Please try again."
+       console.error("Failed to submit need:", error)
+       console.error("Error details:", typeof error, error?.constructor?.name, error?.name, error?.code, error?.details, error?.message)
+       const errorMessage = error instanceof Error ? error.message : "Failed to submit need. Please try again."
       if (errorMessage.includes("Auth session") || errorMessage.includes("not authenticated") || errorMessage.includes("must be logged in")) {
         setSubmitError("Your session has expired. Please go back to the 'Create Your Account' step and sign in again.")
       } else {
