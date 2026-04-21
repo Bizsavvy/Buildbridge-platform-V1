@@ -146,13 +146,11 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background pt-24 px-4 sm:px-6 lg:px-8">
-         <div className="max-w-7xl mx-auto flex flex-col gap-12 animate-pulse">
-            <div className="h-40 bg-surface-variant/30 rounded-3xl" />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-               <div className="h-64 bg-surface-variant/30 rounded-3xl" />
-               <div className="h-64 bg-surface-variant/30 rounded-3xl" />
-            </div>
+      <div className="w-full flex flex-col gap-12 animate-pulse">
+         <div className="h-40 bg-surface-variant/30 rounded-3xl" />
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="h-64 bg-surface-variant/30 rounded-3xl" />
+            <div className="h-64 bg-surface-variant/30 rounded-3xl" />
          </div>
       </div>
     )
@@ -169,8 +167,7 @@ export default function DashboardPage() {
   const firstName = userName.split(' ')[0]
 
   return (
-    <main className="min-h-screen bg-background pt-24 pb-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto flex flex-col gap-12">
+    <div className="flex flex-col gap-10">
         
         {/* Guidance Section for new users */}
         {needs.length === 0 && (
@@ -365,7 +362,6 @@ export default function DashboardPage() {
            <BadgeDisplay />
         </div>
 
-      </div>
 
       {/* NIN Verification Overlay */}
       <AnimatePresence>
@@ -432,7 +428,6 @@ export default function DashboardPage() {
           />
         )}
       </AnimatePresence>
-
-    </main>
+    </div>
   )
 }
