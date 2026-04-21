@@ -7,6 +7,20 @@ export async function POST(req: NextRequest) {
   const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID
 
   if (!accountSid || !authToken || !verifyServiceSid) {
+    if (process.env.NODE_ENV === "development") {
+        const body = await req.json()
+        const { code } = body
+        if (code === "123456") {
+            return NextResponse.json({ 
+                success: true, 
+                message: "Phone number verified successfully (MOCK COMPLETED)"
+            })
+        }
+        return NextResponse.json(
+            { success: false, error: "Mock Mode: Incorrect code. Try '123456'." },
+            { status: 400 }
+        )
+    }
     console.error("Missing Twilio credentials. Check your .env file.")
     return NextResponse.json(
       { success: false, error: "Server configuration error. Missing Twilio credentials." },

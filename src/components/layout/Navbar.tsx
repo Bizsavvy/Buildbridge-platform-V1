@@ -3,14 +3,18 @@
 import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Menu, User, LogOut } from "lucide-react"
+import { Menu, User, LogOut, ChevronDown, LayoutDashboard, Settings, Sparkles, PlusCircle } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import { createClient } from "@/lib/supabase/client"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
+import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 export function Navbar() {
   const router = useRouter();
+  const pathname = usePathname();
+  const isDashboard = pathname?.startsWith("/dashboard");
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [user, setUser] = React.useState<SupabaseUser | null>(null);
@@ -86,54 +90,44 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Centered Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-10">
-            {[
-              { name: "Browse Needs", href: "/browse" },
-              { name: "How It Works", href: "/how-it-works" },
-              { name: "Impact Wall", href: "/impact" },
-            ].map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 cursor-pointer ${
-                  isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
+          {/* Centered Desktop Nav - Hidden on Dashboard */}
+          {!isDashboard && (
+            <nav className="hidden md:flex items-center gap-10">
+              {[
+                { name: "Browse Needs", href: "/browse" },
+                { name: "How It Works", href: "/how-it-works" },
+                { name: "Impact Wall", href: "/impact" },
+              ].map((link) => (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 cursor-pointer ${
+                    isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              ))}
+            </nav>
+          )}
 
           {/* Right Action Area */}
           <div className="flex items-center gap-4">
              {isAuthenticated ? (
-               <>
-                 <Link 
-                   href="/dashboard" 
-                   className={`hidden sm:flex group cursor-pointer text-sm font-black items-center gap-2 transition-colors duration-300 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}
-                 >
-                   <User className="h-4 w-4" />
-                   Dashboard
-                 </Link>
-                 
-                 <button
-                   onClick={handleSignOut}
-                   className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${
-                     isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
-                   }`}
-                 >
-                   Log out
-                 </button>
-               </>
+               <UserMenu 
+                user={user} 
+                displayName={displayName} 
+                onSignOut={handleSignOut} 
+                isScrolled={isScrolled} 
+               />
              ) : (
-              <>
+               <>
                 <Link href="/login" className={`hidden sm:flex group cursor-pointer text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
                   Log In
                 </Link>
                 
                 <Link 
-                  href="/create-need" 
+                  href={isAuthenticated ? "/create-need" : "/signup"} 
                   className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${
                     isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
                   }`}
@@ -143,13 +137,15 @@ export function Navbar() {
               </>
             )}
 
-            <button 
-              className={`md:hidden p-2 transition-colors cursor-pointer ${isScrolled ? 'text-on-surface-variant' : 'text-on-surface'}`}
-              onClick={() => setMobileMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu className="h-6 w-6" />
-            </button>
+            {!isDashboard && (
+              <button 
+                className={`md:hidden p-2 transition-colors cursor-pointer ${isScrolled ? 'text-on-surface-variant' : 'text-on-surface'}`}
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -157,5 +153,123 @@ export function Navbar() {
 
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </>
+  );
+}
+
+function UserMenu({ 
+  user, 
+  displayName, 
+  onSignOut, 
+  isScrolled 
+}: { 
+  user: SupabaseUser | null, 
+  displayName: string, 
+  onSignOut: () => void,
+  isScrolled: boolean 
+}) {
+  const [isOpen, setIsOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={menuRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          "flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 active:scale-95 group",
+          isScrolled ? "hover:bg-primary/5" : "hover:bg-white/10"
+        )}
+      >
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
+          {displayName.charAt(0).toUpperCase()}
+        </div>
+        <span className={cn(
+          "hidden sm:block text-sm font-black tracking-tight",
+          isScrolled ? "text-on-surface" : "text-on-surface"
+        )}>
+          {displayName}
+        </span>
+        <ChevronDown className={cn(
+          "w-4 h-4 transition-transform duration-300",
+          isOpen ? "rotate-180" : "rotate-0",
+          isScrolled ? "text-on-surface-variant" : "text-on-surface-variant"
+        )} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="absolute right-0 mt-2 w-56 rounded-[1.5rem] bg-white shadow-2xl border border-outline-variant overflow-hidden p-2 z-[60]"
+          >
+            <div className="px-4 py-3 border-b border-outline-variant mb-1">
+               <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">Logged in as</p>
+               <p className="text-sm font-bold text-on-surface truncate">{user?.email}</p>
+            </div>
+
+            <Link 
+              href="/create-need"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-black group mb-2 shadow-lg shadow-primary/20"
+            >
+              <PlusCircle className="w-4 h-4" />
+              Create Need
+            </Link>
+
+            <Link 
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
+            >
+              <User className="w-4 h-4" />
+              Profile
+            </Link>
+
+            <Link 
+              href="/account"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
+            >
+              <Settings className="w-4 h-4" />
+              Settings
+            </Link>
+
+            <Link 
+              href="mailto:support@buildbridge.app"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
+            >
+              <Sparkles className="w-4 h-4" />
+              Contact Support
+            </Link>
+
+            <div className="h-px bg-outline-variant my-1 px-2" />
+
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onSignOut();
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-error/5 text-on-surface-variant hover:text-error transition-colors text-sm font-bold group"
+            >
+              <LogOut className="w-4 h-4" />
+              Log out
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
