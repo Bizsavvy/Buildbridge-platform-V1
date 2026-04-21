@@ -17,7 +17,7 @@ export const metadata: Metadata = {
  */
 export default async function CreateNeedPage() {
   return (
-    <main className="min-h-screen bg-background pt-24 pb-12">
+    <main className="min-h-screen bg-background">
       <CreateNeedForm tradeCategory="tailor" />
     </main>
   )
