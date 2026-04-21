@@ -23,6 +23,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
+import { cn } from "@/lib/utils"
+import { GoalGradientCard } from "@/components/dashboard/GoalGradientCard"
+import { CreateNeedFlow } from "@/components/dashboard/CreateNeedFlow"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -37,6 +40,7 @@ export default function DashboardPage() {
   const [showCopied, setShowCopied] = useState(false)
   const [userName, setUserName] = useState("Artisan")
   const [authRetryCount, setAuthRetryCount] = useState(0)
+  const [isCreatingNeed, setIsCreatingNeed] = useState(false)
   const MAX_AUTH_RETRIES = 3
 
   const fetchDashboardData = async () => {
@@ -168,6 +172,14 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-background pt-24 pb-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
         
+        {/* Guidance Section for new users */}
+        {needs.length === 0 && (
+          <GoalGradientCard 
+            progress={20} 
+            onAction={() => setIsCreatingNeed(true)} 
+          />
+        )}
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
            <div className="flex flex-col gap-2">
@@ -179,10 +191,19 @@ export default function DashboardPage() {
               </p>
            </div>
            <div className="flex gap-4">
-              <Link href="/create-need" className="h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <button 
+                onClick={() => setIsCreatingNeed(true)}
+                className={cn(
+                  "h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all relative overflow-hidden",
+                  needs.length === 0 && "animate-pulse ring-4 ring-primary/20 ring-offset-2 ring-offset-background"
+                )}
+              >
+                 {needs.length === 0 && (
+                   <div className="absolute inset-0 bg-white/20 animate-shine pointer-events-none" />
+                 )}
                  <Plus className="h-6 w-6" />
                  New Funding Need
-              </Link>
+              </button>
            </div>
         </div>
 
@@ -257,7 +278,7 @@ export default function DashboardPage() {
                    title="Your first goal starts here"
                    description="Create a need to get tools, equipment, or materials backed by the community."
                    actionLabel="Start a Request"
-                   onAction={() => router.push('/create-need')}
+                   onAction={() => setIsCreatingNeed(true)}
                 />
               )}
            </div>
@@ -397,6 +418,18 @@ export default function DashboardPage() {
                />
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Create Need Modular Flow */}
+      <AnimatePresence>
+        {isCreatingNeed && (
+          <CreateNeedFlow 
+            onClose={() => {
+              setIsCreatingNeed(false);
+              fetchDashboardData();
+            }}
+          />
         )}
       </AnimatePresence>
 

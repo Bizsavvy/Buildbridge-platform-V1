@@ -1,4 +1,4 @@
-import SignupForm from "@/components/auth/SignupForm";
+import { HighVelocityAuth } from "@/components/auth/HighVelocityAuth";
 import { Metadata } from "next";
 import { Suspense } from "react";
 
@@ -17,13 +17,20 @@ export default function SignupPage() {
         </div>
 
         <div className="w-full max-w-7xl relative z-10 flex flex-col items-center">
-            <Suspense fallback={<div className="h-96 w-full max-w-lg bg-white/50 animate-pulse rounded-[2.5rem]" />}>
-                <SignupForm />
+            <Suspense fallback={<div className="h-96 w-full max-w-lg bg-white/10 animate-pulse rounded-[2.5rem] border border-white/20" />}>
+                <HighVelocityAuth />
             </Suspense>
 
-            <p className="mt-12 text-[10px] font-black uppercase tracking-[0.4em] text-on-surface-variant/40">
-                Pockets of Trust Building Communities
-            </p>
+            <div className="mt-16 flex flex-col items-center gap-4">
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-on-surface-variant/40">
+                    Pockets of Trust Building Communities
+                </p>
+                <div className="flex gap-6 opacity-20">
+                   {/* 3D Glass-morphism decoration placeholders */}
+                   <div className="w-12 h-12 bg-white rounded-xl shadow-xl rotate-12" />
+                   <div className="w-12 h-12 bg-primary rounded-xl shadow-xl -rotate-12" />
+                </div>
+            </div>
         </div>
     </div>
   );

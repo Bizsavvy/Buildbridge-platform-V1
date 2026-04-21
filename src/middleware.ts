@@ -11,7 +11,8 @@ import { NextResponse, type NextRequest } from "next/server";
  * Paths that require an authenticated session.
  * Unauthenticated users hitting these routes are redirected to /login.
  */
-const PROTECTED_PATHS = ["/dashboard", "/admin"];
+const PROTECTED_PATHS = ["/dashboard", "/admin", "/profile", "/account"];
+const AUTH_ONLY_PATHS = ["/login", "/signup"];
 
 export default async function middleware(request: NextRequest) {
   const { createServerClient } = await import("@supabase/ssr");
@@ -46,10 +47,25 @@ export default async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
+
   const isProtected = PROTECTED_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
+  
+  const isAuthOnly = AUTH_ONLY_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`)
+  );
 
+  const isHome = pathname === "/";
+
+  // CASE 1: Authenticated user hitting /, /login, or /signup
+  if (user && (isAuthOnly || isHome)) {
+    const dashboardUrl = request.nextUrl.clone();
+    dashboardUrl.pathname = "/dashboard";
+    return NextResponse.redirect(dashboardUrl);
+  }
+
+  // CASE 2: Unauthenticated user hitting a protected path
   if (isProtected && !user) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";

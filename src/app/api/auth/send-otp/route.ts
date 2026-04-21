@@ -7,6 +7,14 @@ export async function POST(req: NextRequest) {
   const verifyServiceSid = process.env.TWILIO_VERIFY_SERVICE_SID
 
   if (!accountSid || !authToken || !verifyServiceSid) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("⚠️ TWILIO CREDENTIALS MISSING: Running in Mock Mode. Use OTP code '123456' to verify.");
+      return NextResponse.json({ 
+        success: true, 
+        message: "OTP sent successfully (MOCK MODE)",
+        mock: true
+      })
+    }
     console.error("Missing Twilio credentials. Check your .env file.")
     return NextResponse.json(
       { success: false, error: "Server configuration error. Missing Twilio credentials." },

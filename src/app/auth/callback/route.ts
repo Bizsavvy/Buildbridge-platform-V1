@@ -79,6 +79,13 @@ export async function GET(request: Request) {
           console.log('Signup flow - new user, redirecting to dashboard:', redirectUrl)
           return NextResponse.redirect(redirectUrl)
         }
+        else if (flow === 'high-velocity') {
+          // High-velocity flow: always go back to signup to finish personalization if needed
+          // The HighVelocityAuth component will handle the redirect to dashboard once profile is saved
+          const redirectUrl = `${origin}/signup`
+          console.log('High-velocity flow - redirecting to personalization:', redirectUrl)
+          return NextResponse.redirect(redirectUrl)
+        }
         else {
           // No flow specified (backward compatibility) - use old behavior
           const redirectUrl = `${origin}${next}?resumedAuth=true`
