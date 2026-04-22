@@ -381,18 +381,6 @@ export default function LoginForm() {
               />
             </div>
 
-<<<<<<< HEAD
-  <Button
-    type="submit"
-    isLoading={isLoading}
-    className="h-16 rounded-full text-lg font-black shadow-xl shadow-primary/20"
-    disabled={phone.length < 10}
-  >
-    <span>Continue</span>
-    {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
-  </Button>
-          </form >
-=======
             <div className="flex flex-col gap-4">
               <Button
                 type="submit"
