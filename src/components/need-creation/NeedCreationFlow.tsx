@@ -52,7 +52,7 @@ const TRADE_CATEGORIES = [
 ]
 
 // Nigerian states
-const NIGERIAN_STATES = Object.keys(NIGERIA_LOCATIONS).sort()
+const NIGERIAN_STATES = NIGERIA_LOCATIONS.map(s => s.id).sort()
 
 interface NeedCreationFlowProps {
   mode?: "onboarding" | "create"
@@ -364,7 +364,7 @@ export default function NeedCreationFlow({ mode: initialMode = "onboarding" }: N
   // Get LGAs for selected state
   const getLGAs = () => {
     if (!formData.state) return []
-    return NIGERIA_LOCATIONS[formData.state] || []
+    return NIGERIA_LOCATIONS.find(s => s.id === formData.state || s.state === formData.state)?.lgas || []
   }
 
   // ─── NAVIGATION ───────────────────────────────────────────────────────────
@@ -756,7 +756,6 @@ export default function NeedCreationFlow({ mode: initialMode = "onboarding" }: N
             .from('profiles')
             .insert({
               user_id: user.id,
-              full_name: formData.fullName || user.user_metadata?.full_name || '',
               trade_category: tradeCategoryId as any,
               trade_other_description: formData.tradeCategory === "Other" ? formData.customTrade : null,
               location_state: formData.state.toLowerCase().replace(/\s+/g, '_') as any,
@@ -764,6 +763,16 @@ export default function NeedCreationFlow({ mode: initialMode = "onboarding" }: N
             })
             .select('id')
             .single()
+          
+          // Also try to update public.users name
+          try {
+            await supabase
+              .from('users')
+              .update({ name: formData.fullName || user.user_metadata?.full_name || '' })
+              .eq('id', user.id);
+          } catch (e) {
+            console.warn("Skipped public.users update");
+          }
           
           if (createError) {
             // Try to fetch existing profile (may have been created by trigger)

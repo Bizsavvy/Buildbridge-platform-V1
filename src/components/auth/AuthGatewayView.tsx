@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { Phone, ArrowRight, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
 
 interface AuthGatewayViewProps {
   onPhoneSelect: () => void;
@@ -39,12 +40,10 @@ export function AuthGatewayView({ onPhoneSelect, isLoading }: AuthGatewayViewPro
       transition={{ duration: 0.2 }}
       className="flex flex-col gap-10 w-full"
     >
-      <div className="flex flex-col gap-4 text-center">
-        <h1 className="text-4xl sm:text-5xl font-black text-on-surface tracking-tight leading-[1.1]">
-          Welcome to <span className="text-primary italic">BuildBridge</span>
-        </h1>
-        <p className="text-on-surface-variant font-medium text-lg">
-          The informal economy's bridge to capital.
+      <div className="flex flex-col gap-3 text-center">
+        <h1 className="text-4xl font-black text-on-surface tracking-tight">Get <span className="text-primary italic">Started.</span></h1>
+        <p className="text-on-surface-variant font-medium leading-relaxed">
+          Create your BuildBridge account in seconds.
         </p>
       </div>
 
@@ -81,10 +80,16 @@ export function AuthGatewayView({ onPhoneSelect, isLoading }: AuthGatewayViewPro
       </div>
 
       <div className="flex justify-center items-center gap-8 opacity-40 grayscale group-hover:grayscale-0 transition-all">
-         {/* Subtle 3D-ish icons or logos can go here */}
          <Sparkles className="w-6 h-6" />
          <div className="text-[10px] font-black uppercase tracking-[0.3em]">Built for Nigeria</div>
          <Sparkles className="w-6 h-6" />
+      </div>
+
+      <div className="text-center text-sm font-bold text-on-surface-variant/60 uppercase tracking-widest mt-2 px-2">
+        Already have an account?{" "}
+        <Link href="/login" className="text-primary font-black hover:underline ml-1">
+          Log in
+        </Link>
       </div>
     </motion.div>
   );
