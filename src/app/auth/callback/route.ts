@@ -1,13 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/dashboard'
-  const flow = searchParams.get('flow') // 'login' or 'signup'
+  
+  // Read from cookie first, then fallback to searchParams, then default
+  const nextCookie = request.cookies.get('auth_next')?.value
+  const next = nextCookie ?? searchParams.get('next') ?? '/dashboard'
+  
+  const flowCookie = request.cookies.get('auth_flow')?.value
+  const flow = flowCookie ?? searchParams.get('flow')
 
-  console.log('Auth callback received:', { code, next, flow, origin, fullUrl: request.url })
+  console.log('Auth callback received:', { code, next, flow, origin, fullUrl: request.url, fromCookie: !!flowCookie })
 
   if (code) {
     try {
