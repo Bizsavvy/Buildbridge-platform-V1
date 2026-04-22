@@ -51,7 +51,7 @@ export default async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );
-  
+
   const isAuthOnly = AUTH_ONLY_PATHS.some(
     (path) => pathname === path || pathname.startsWith(`${path}/`)
   );

@@ -15,17 +15,18 @@ import { cn } from "@/lib/utils"
 export function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const isDashboard = pathname?.startsWith("/dashboard");
+  const isDashboard = pathname?.startsWith("/dashboard") || pathname?.startsWith("/profile") || pathname?.startsWith("/account");
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [user, setUser] = React.useState<SupabaseUser | null>(null);
+  const [showContactSupport, setShowContactSupport] = React.useState(false);
   const supabase = React.useMemo(() => createClient(), []);
 
   React.useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    
+
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -56,111 +57,109 @@ export function Navbar() {
     router.push("/");
   };
 
-  const isAuthenticated = user !== null;
+  const isAuthenticated = user !== null && !pathname?.startsWith("/signup") && !pathname?.startsWith("/register");
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
     <>
-    <div className="fixed top-0 left-0 right-0 z-50">
-      {/* Top Announcement Bar */}
-      <div className="w-full bg-primary text-on-primary py-2 px-4 text-center">
-        <p className="text-xs sm:text-sm font-bold tracking-wide flex items-center justify-center gap-2">
-          <span className="opacity-80">📣</span>
-          BuildBridge: The #1 Direct Impact Platform for Nigeria's Artisans
-          <Link href="/browse" className="underline hover:opacity-80 transition-opacity ml-1">
-            Back a Trade Today →
-          </Link>
-        </p>
-      </div>
-
-      <header
-        className={`w-full transition-all duration-300 border-b border-transparent ${
-          isScrolled 
-            ? "bg-white/90 backdrop-blur-md shadow-sm border-white/20 py-3" 
-            : "bg-transparent py-5"
-        }`}
-      >
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          
-          {/* Logo */}
-          <Logo variant="primary" />
-
-          {/* Centered Desktop Nav - Hidden on Dashboard */}
-          {!isDashboard && (
-            <nav className="hidden md:flex items-center gap-10">
-              {[
-                { name: "Browse Needs", href: "/browse" },
-                { name: "How It Works", href: "/how-it-works" },
-                { name: "Impact Wall", href: "/impact" },
-              ].map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 cursor-pointer ${
-                    isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'
-                  }`}
-                >
-                  {link.name}
-                </Link>
-              ))}
-            </nav>
-          )}
-
-          {/* Right Action Area */}
-          <div className="flex items-center gap-4">
-             {isAuthenticated ? (
-               <UserMenu 
-                user={user} 
-                displayName={displayName} 
-                onSignOut={handleSignOut} 
-                isScrolled={isScrolled} 
-               />
-             ) : (
-               <>
-                <Link href="/login" className={`hidden sm:flex group cursor-pointer text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
-                  Log In
-                </Link>
-                
-                <Link 
-                  href={isAuthenticated ? "/dashboard/create-need" : "/signup"} 
-                  className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${
-                    isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
-                  }`}
-                >
-                  Get Started
-                </Link>
-              </>
-            )}
-
-            {!isDashboard && (
-              <button 
-                className={`md:hidden p-2 transition-colors cursor-pointer ${isScrolled ? 'text-on-surface-variant' : 'text-on-surface'}`}
-                onClick={() => setMobileMenuOpen(true)}
-                aria-label="Open menu"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-            )}
-          </div>
+      <div className="fixed top-0 left-0 right-0 z-50">
+        {/* Top Announcement Bar */}
+        <div className="w-full bg-primary text-on-primary py-2 px-4 text-center">
+          <p className="text-xs sm:text-sm font-bold tracking-wide flex items-center justify-center gap-2">
+            <span className="opacity-80">📣</span>
+            BuildBridge: The #1 Direct Impact Platform for Nigeria's Artisans
+            <Link href="/browse" className="underline hover:opacity-80 transition-opacity ml-1">
+              Back a Trade Today →
+            </Link>
+          </p>
         </div>
-      </header>
-    </div>
+
+        <header
+          className={`w-full transition-all duration-300 border-b border-transparent ${isScrolled
+              ? "bg-white/90 backdrop-blur-md shadow-sm border-white/20 py-3"
+              : "bg-transparent py-5"
+            }`}
+        >
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+
+            {/* Logo */}
+            <Logo variant="primary" />
+
+            {/* Centered Desktop Nav - Hidden on Dashboard */}
+            {!isDashboard && (
+              <nav className="hidden md:flex items-center gap-10">
+                {[
+                  { name: "Browse Needs", href: "/browse" },
+                  { name: "How It Works", href: "/how-it-works" },
+                  { name: "Impact Wall", href: "/impact" },
+                ].map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={`text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 cursor-pointer ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'
+                      }`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </nav>
+            )}
+
+            {/* Right Action Area */}
+            <div className="flex items-center gap-4">
+              {isAuthenticated ? (
+                <UserMenu
+                  user={user}
+                  displayName={displayName}
+                  onSignOut={handleSignOut}
+                  isScrolled={isScrolled}
+                />
+              ) : (
+                <>
+                  <Link href="/login" className={`hidden sm:flex group cursor-pointer text-sm font-bold tracking-wide transition-all duration-300 hover:scale-105 ${isScrolled ? 'text-on-surface-variant hover:text-primary' : 'text-on-surface-variant hover:text-primary'}`}>
+                    Log In
+                  </Link>
+
+                  <Link
+                    href={isAuthenticated ? "/dashboard/create-need" : "/signup"}
+                    className={`hidden sm:flex h-11 px-7 rounded-full font-extrabold text-sm transition-all items-center justify-center hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/10 ${isScrolled ? 'bg-primary text-white' : 'bg-primary text-white'
+                      }`}
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
+
+              {!isDashboard && (
+                <button
+                  className={`md:hidden p-2 transition-colors cursor-pointer ${isScrolled ? 'text-on-surface-variant' : 'text-on-surface'}`}
+                  onClick={() => setMobileMenuOpen(true)}
+                  aria-label="Open menu"
+                >
+                  <Menu className="h-6 w-6" />
+                </button>
+              )}
+            </div>
+          </div>
+        </header>
+      </div>
 
       <MobileNav isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
     </>
   );
 }
 
-function UserMenu({ 
-  user, 
-  displayName, 
-  onSignOut, 
-  isScrolled 
-}: { 
-  user: SupabaseUser | null, 
-  displayName: string, 
+function UserMenu({
+  user,
+  displayName,
+  onSignOut,
+  isScrolled
+}: {
+  user: SupabaseUser | null,
+  displayName: string,
   onSignOut: () => void,
-  isScrolled: boolean 
+  isScrolled: boolean,
+  onContactSupport: () => void
 }) {
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
@@ -210,11 +209,11 @@ function UserMenu({
             className="absolute right-0 mt-2 w-56 rounded-[1.5rem] bg-white shadow-2xl border border-outline-variant overflow-hidden p-2 z-[60]"
           >
             <div className="px-4 py-3 border-b border-outline-variant mb-1">
-               <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">Logged in as</p>
-               <p className="text-sm font-bold text-on-surface truncate">{user?.email}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-on-surface-variant/40">Logged in as</p>
+              <p className="text-sm font-bold text-on-surface truncate">{user?.email}</p>
             </div>
 
-            <Link 
+            <Link
               href="/dashboard/create-need"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors text-sm font-black group mb-2 shadow-lg shadow-primary/20"
@@ -223,7 +222,7 @@ function UserMenu({
               Create Need
             </Link>
 
-            <Link 
+            <Link
               href="/profile"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
@@ -232,7 +231,7 @@ function UserMenu({
               Profile
             </Link>
 
-            <Link 
+            <Link
               href="/dashboard/account"
               onClick={() => setIsOpen(false)}
               className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
@@ -241,14 +240,16 @@ function UserMenu({
               Settings
             </Link>
 
-            <Link 
-              href="mailto:support@buildbridge.app"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                onContactSupport();
+              }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-primary/5 text-on-surface-variant hover:text-primary transition-colors text-sm font-bold group"
             >
-              <Sparkles className="w-4 h-4" />
+              <MessageCircle className="w-4 h-4" />
               Contact Support
-            </Link>
+            </button>
 
             <div className="h-px bg-outline-variant my-1 px-2" />
 
