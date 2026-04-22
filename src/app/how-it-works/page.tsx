@@ -8,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function HowItWorksPage() {
-  return (
-    <div className="flex flex-col w-full overflow-x-hidden bg-[var(--color-surface)]">
-      <HowItWorksContent />
-    </div>
-  );
+  return <HowItWorksContent />;
 }

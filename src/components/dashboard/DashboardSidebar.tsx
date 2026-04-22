@@ -123,10 +123,13 @@ function SidebarContent({
                   : "text-white/70 hover:text-white hover:bg-white/8"
               )}
             >
-              {/* Active left accent bar */}
-              {active && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-white rounded-r-full" />
-              )}
+              {/* Active left accent bar (always render to prevent hydration mismatch) */}
+              <span 
+                className={cn(
+                  "absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-6 bg-white rounded-r-full transition-opacity",
+                  active ? "opacity-100" : "opacity-0"
+                )} 
+              />
               <Icon
                 className={cn(
                   "w-[18px] h-[18px] shrink-0 transition-colors",

@@ -186,12 +186,29 @@ function PhoneLinkDialog({ isOpen, onClose, currentPhone, onSuccess }: { isOpen:
     setIsLoading(true);
 
     try {
-      // Format phone
+      // Format phone robustly
       let cleanPhone = phone.trim();
-      if (cleanPhone.startsWith("0") && cleanPhone.length === 11) {
-        cleanPhone = "+234" + cleanPhone.slice(1);
-      } else if (!cleanPhone.startsWith("+")) {
-        cleanPhone = "+234" + cleanPhone;
+      const hasPlus = cleanPhone.startsWith("+");
+      
+      // Strip all non-digit characters
+      cleanPhone = cleanPhone.replace(/[^\d]/g, "");
+      
+      if (hasPlus) {
+        cleanPhone = "+" + cleanPhone;
+      } else {
+        if (cleanPhone.startsWith("0") && cleanPhone.length === 11) {
+          // Standard local: 08012345678 -> +2348012345678
+          cleanPhone = "+234" + cleanPhone.slice(1);
+        } else if (cleanPhone.length === 10) {
+          // Missed leading zero: 8012345678 -> +2348012345678
+          cleanPhone = "+234" + cleanPhone;
+        } else if (cleanPhone.startsWith("234")) {
+          // Typed country code without plus: 2348012345678 -> +2348012345678
+          cleanPhone = "+" + cleanPhone;
+        } else {
+          // Fallback
+          cleanPhone = "+234" + cleanPhone;
+        }
       }
 
       // Update phone in auth
