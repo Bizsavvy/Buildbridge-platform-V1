@@ -149,7 +149,7 @@ export default function SignupForm() {
     setErrorMsg(null)
     try {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
-      const redirectTo = `${baseUrl}/auth/callback?next=/onboarding&flow=signup`
+      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(redirectPath)}&flow=signup`
       console.log('Google OAuth redirectTo:', redirectTo)
       await supabase.auth.signInWithOAuth({
         provider: 'google',

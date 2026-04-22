@@ -179,10 +179,13 @@ export default function DashboardPage() {
               </p>
            </div>
            <div className="flex gap-4">
-              <Link href="/create-need" className="h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <button 
+                 onClick={() => window.location.href = '/create-need?mode=create'}
+                 className="h-14 px-8 rounded-2xl gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
                  <Plus className="h-6 w-6" />
                  New Funding Need
-              </Link>
+              </button>
            </div>
         </div>
 
@@ -257,7 +260,7 @@ export default function DashboardPage() {
                    title="Your first goal starts here"
                    description="Create a need to get tools, equipment, or materials backed by the community."
                    actionLabel="Start a Request"
-                   onAction={() => router.push('/create-need')}
+                   onAction={() => window.location.href = '/create-need?mode=create'}
                 />
               )}
            </div>
