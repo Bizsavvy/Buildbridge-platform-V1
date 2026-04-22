@@ -134,7 +134,7 @@ export default function LoginForm() {
       // Set cookies for the callback route to read
       document.cookie = `auth_flow=login; path=/; max-age=300; SameSite=Lax`;
       document.cookie = `auth_next=/dashboard; path=/; max-age=300; SameSite=Lax`;
-      
+
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : ''
       const redirectTo = `${baseUrl}/auth/callback`
       console.log('Google OAuth redirectTo:', redirectTo)
