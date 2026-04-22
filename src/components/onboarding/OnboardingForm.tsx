@@ -669,13 +669,13 @@ export function OnboardingForm() {
             <div className="bg-white/70 p-8 rounded-[3rem] shadow-xl border border-outline-variant/30 flex flex-col gap-6">
               <select value={formData.location_state} onChange={(e) => setFormData({ ...formData, location_state: e.target.value, location_lga: "" })} className="h-16 w-full rounded-2xl border-2 border-outline-variant bg-white px-6 font-bold text-lg outline-none appearance-none cursor-pointer">
                 <option value="">Select State</option>
-                {Object.keys(NIGERIA_LOCATIONS).map((state) => (
-                  <option key={state} value={state}>{state.charAt(0).toUpperCase() + state.slice(1).replace("_", " ")}</option>
+                {NIGERIA_LOCATIONS.map((s) => (
+                  <option key={s.id} value={s.id}>{s.state}</option>
                 ))}
               </select>
               <select disabled={!formData.location_state} value={formData.location_lga} onChange={(e) => setFormData({ ...formData, location_lga: e.target.value })} className="h-16 w-full rounded-2xl border-2 border-outline-variant bg-white px-6 font-bold text-lg outline-none disabled:opacity-50 cursor-pointer">
                 <option value="">Select Local Area</option>
-                {formData.location_state && NIGERIA_LOCATIONS[formData.location_state].map((lga) => (
+                {formData.location_state && NIGERIA_LOCATIONS.find(s => s.id === formData.location_state)?.lgas.map((lga) => (
                   <option key={lga} value={lga}>{lga}</option>
                 ))}
               </select>

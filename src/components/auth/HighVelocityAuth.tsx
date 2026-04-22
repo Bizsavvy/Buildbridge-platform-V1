@@ -10,6 +10,8 @@ import { VelocityOtpInput } from "./VelocityOtpInput";
 import { PersonalizationView } from "./PersonalizationView";
 import { adminSyncPhoneUser } from "@/app/actions/auth";
 import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Sparkles } from "lucide-react";
 
 export function HighVelocityAuth() {
   const router = useRouter();
@@ -35,14 +37,18 @@ export function HighVelocityAuth() {
       
       if (session) {
         // If we have a session, we need to check if the profile is complete
-        const { data: profile } = await supabase
+        const { data: profile, error: profileCheckError } = await supabase
           .from('profiles')
-          .select('full_name, trade_category')
+          .select('*')
           .eq('user_id', session.user.id)
           .maybeSingle();
 
-        if (!profile || !profile.full_name) {
-          setInitialName(session.user.user_metadata?.full_name || "");
+        // Use name from profile or auth metadata
+        const nameInProfile = profile?.full_name || profile?.name;
+        const nameInAuth = session.user.user_metadata?.full_name || session.user.user_metadata?.name || "";
+
+        if (!profile || !nameInProfile) {
+          setInitialName(nameInAuth);
           setStep("personalization");
         } else {
           // Already have a profile, go to dashboard
@@ -132,33 +138,43 @@ export function HighVelocityAuth() {
         'hair_stylist', 'blacksmith', 'other'
       ];
 
-      const isEnumMatch = validCategories.includes(data.trade.toLowerCase());
+      const tradeKey = data.trade.toLowerCase();
+      const isEnumMatch = validCategories.includes(tradeKey);
       
       const profilePayload: any = {
         user_id: user.id,
-        full_name: data.name,
         updated_at: new Date().toISOString()
       };
 
       if (isEnumMatch) {
-         profilePayload.trade_category = data.trade.toLowerCase();
+         profilePayload.trade_category = tradeKey;
       } else {
          profilePayload.trade_category = 'other';
          profilePayload.trade_other_description = data.trade;
       }
 
       // Update/Upsert Profile
+      // We use onConflict: 'user_id' because user_id is unique and better for identifying the profile than the PK uuid
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert(profilePayload);
+        .upsert(profilePayload, { onConflict: 'user_id' });
 
       if (profileError) {
-        console.error("Profile upsert error:", profileError);
-        throw profileError;
+        console.error("Profile upsert error:", JSON.stringify(profileError, null, 2));
+        throw new Error(profileError.message || "Failed to update profile.");
+      }
+
+      // Update name in public.users table if it exists and we have permission
+      try {
+        await supabase
+          .from('users')
+          .update({ name: data.name })
+          .eq('id', user.id);
+      } catch (e) {
+        console.warn("Note: public.users table update skipped or failed (expected if using alternative schema)");
       }
 
       // SUCCESS! Use window.location for a hard refresh to the dashboard
-      // This ensures middleware and server components recognize the new session/profile status instantly
       window.location.href = "/dashboard";
     } catch (err: any) {
       console.error("Personalization submission failed:", err);
@@ -205,7 +221,10 @@ export function HighVelocityAuth() {
   if (!isMounted) return <div className="h-96 w-full max-w-lg bg-white/10 animate-pulse rounded-[2.5rem] border border-white/20" />;
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <Card hoverLift className="w-full max-w-lg mx-auto p-10 shadow-2xl rounded-[2.5rem] border-primary/10 overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+        <Sparkles className="w-24 h-24 text-primary" />
+      </div>
       <AnimatePresence mode="wait">
         {step === "gateway" && (
           <AuthGatewayView 
@@ -221,21 +240,33 @@ export function HighVelocityAuth() {
              initial={{ opacity: 0, x: 20 }}
              animate={{ opacity: 1, x: 0 }}
              exit={{ opacity: 0, x: -20 }}
-             className="flex flex-col gap-8"
+             className="flex flex-col gap-8 w-full"
            >
-             <button onClick={() => setStep("gateway")} className="self-start text-xs font-black uppercase tracking-widest opacity-50">← Back</button>
-             <h1 className="text-4xl font-black text-on-surface">Enter your <span className="text-primary italic">Phone.</span></h1>
+             <button 
+               onClick={() => setStep("gateway")} 
+               className="self-start flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors text-sm font-black uppercase tracking-widest"
+             >
+               ← Back
+             </button>
+             <div className="flex flex-col gap-3 text-center">
+                <h1 className="text-4xl font-black text-on-surface tracking-tight">Enter your <span className="text-primary italic">Phone.</span></h1>
+                <p className="text-on-surface-variant font-medium leading-relaxed">
+                  We'll send you a secure verification code.
+                </p>
+             </div>
              <form onSubmit={handleSendOtp} className="flex flex-col gap-6">
                 <input 
                   type="tel" 
                   value={phoneEntry}
                   onChange={(e) => setPhoneEntry(e.target.value)}
                   placeholder="0801 234 5678"
-                  className="h-20 rounded-[2rem] border-2 border-outline-variant focus:border-primary text-2xl font-black px-8 shadow-inner placeholder:opacity-20"
+                  className="h-20 rounded-[2rem] border-2 border-outline-variant focus:border-primary text-2xl font-black px-8 shadow-inner placeholder:opacity-20 text-center"
                   autoFocus
                 />
-                <Button type="submit" isLoading={isLoading} className="h-16 rounded-full font-black text-lg">Send Verification Code</Button>
-                {error && <p className="text-error font-bold text-center">{error}</p>}
+                <Button type="submit" isLoading={isLoading} className="h-16 rounded-full font-black text-lg shadow-xl shadow-primary/20">
+                  Send Verification Code
+                </Button>
+                {error && <p className="text-error font-bold text-center bg-error/5 py-2 rounded-xl border border-error/10">{error}</p>}
              </form>
            </motion.div>
         )}
@@ -260,6 +291,6 @@ export function HighVelocityAuth() {
           />
         )}
       </AnimatePresence>
-    </div>
+    </Card>
   );
 }

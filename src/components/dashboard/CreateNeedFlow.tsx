@@ -85,7 +85,7 @@ export function CreateNeedFlow({ onClose }: CreateNeedFlowProps) {
     }
   };
 
-  const currentLGAs = NIGERIA_LOCATIONS.find(s => s.state === formData.state)?.lgas || [];
+  const currentLGAs = NIGERIA_LOCATIONS.find(s => s.state === formData.state || s.id === formData.state)?.lgas || [];
 
   const handleGeotag = () => {
     if ("geolocation" in navigator) {
@@ -204,7 +204,7 @@ export function CreateNeedFlow({ onClose }: CreateNeedFlowProps) {
                       className="h-16 rounded-2xl border-2 border-outline-variant bg-white px-6 font-bold focus:border-primary outline-none appearance-none"
                     >
                       <option value="">Select State</option>
-                      {NIGERIA_LOCATIONS.map(s => <option key={s.state} value={s.state}>{s.state}</option>)}
+                      {NIGERIA_LOCATIONS.map(s => <option key={s.id} value={s.id}>{s.state}</option>)}
                     </select>
                   </div>
 
