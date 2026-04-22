@@ -94,7 +94,7 @@ export function HighVelocityAuth() {
             impact_statement: (discoveryData.impact || "").substring(0, 200),
             status: 'active',
             deadline: deadlineDate.toISOString().split('T')[0],
-            photo_url: "/images/placeholders/need-default.png"
+            photo_url: discoveryData.photoUrl || "/images/placeholders/need-default.png"
           });
         }
       }

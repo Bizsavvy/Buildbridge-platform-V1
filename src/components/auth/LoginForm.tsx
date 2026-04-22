@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input"
 import { Button } from "@/components/ui/Button"
 import { Card } from "@/components/ui/Card"
 import Link from "next/link"
-import { Phone, ArrowRight, ShieldCheck, Sparkles } from "lucide-react"
+import { Phone, ArrowRight, ShieldCheck, Sparkles, Eye, EyeOff } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export default function LoginForm() {
@@ -175,9 +175,9 @@ export default function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-[38px] text-on-surface-variant/50 hover:text-primary transition-colors font-bold text-xs"
+                className="absolute right-4 top-[38px] text-on-surface-variant/40 hover:text-primary transition-colors p-2"
               >
-                {showPassword ? "HIDE" : "SHOW"}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
