@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Logo } from "../ui/Logo"
-import { Menu, User, LogOut, ChevronDown, LayoutDashboard, Settings, Sparkles, PlusCircle } from "lucide-react"
+import { Menu, User, LogOut, ChevronDown, LayoutDashboard, Settings, Sparkles, PlusCircle, MessageCircle } from "lucide-react"
 import { MobileNav } from "./MobileNav"
 import { createClient } from "@/lib/supabase/client"
 import { useRouter, usePathname } from "next/navigation"
@@ -113,6 +113,7 @@ export function Navbar() {
                   displayName={displayName}
                   onSignOut={handleSignOut}
                   isScrolled={isScrolled}
+                  onContactSupport={() => setShowContactSupport(true)}
                 />
               ) : (
                 <>
@@ -153,7 +154,8 @@ function UserMenu({
   user,
   displayName,
   onSignOut,
-  isScrolled
+  isScrolled,
+  onContactSupport
 }: {
   user: SupabaseUser | null,
   displayName: string,

@@ -50,7 +50,7 @@ export default function LoginForm() {
     const error = searchParams?.get('error')
     const email = searchParams?.get('email')
     const phoneParam = searchParams?.get('phone')
-    
+
     if (phoneParam) {
       setPhone(phoneParam)
     }
@@ -277,7 +277,7 @@ export default function LoginForm() {
           setErrorMsg("Account found, but it is secured with a password. Please login with password.")
           // Give them a moment to read, then switch to password mode
           setTimeout(() => {
-            setStep("password") 
+            setStep("password")
             setErrorMsg(null)
           }, 3000)
         } else {
@@ -382,38 +382,37 @@ export default function LoginForm() {
             </div>
 
 <<<<<<< HEAD
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="h-16 rounded-full text-lg font-black shadow-xl shadow-primary/20"
-              disabled={phone.length < 10}
-            >
-              <span>Continue</span>
-              {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
-            </Button>
-          </form>
+  <Button
+    type="submit"
+    isLoading={isLoading}
+    className="h-16 rounded-full text-lg font-black shadow-xl shadow-primary/20"
+    disabled={phone.length < 10}
+  >
+    <span>Continue</span>
+    {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
+  </Button>
+          </form >
 =======
-             <div className="flex flex-col gap-4">
-               <Button 
-                 type="submit" 
-                 isLoading={isLoading} 
-                 className="h-16 rounded-full text-lg font-black shadow-xl shadow-primary/20"
-                 disabled={phone.length < 10}
-               >
-                 <span>Continue with OTP</span>
-                 {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
-               </Button>
+            <div className="flex flex-col gap-4">
+              <Button
+                type="submit"
+                isLoading={isLoading}
+                className="h-16 rounded-full text-lg font-black shadow-xl shadow-primary/20"
+                disabled={phone.length < 10}
+              >
+                <span>Continue with OTP</span>
+                {!isLoading && <ArrowRight className="ml-2 w-5 h-5" />}
+              </Button>
 
-               <button 
-                 type="button"
-                 onClick={() => setStep("password")}
-                 className="text-xs font-black text-primary hover:underline uppercase tracking-widest text-center"
-               >
-                 Or Login with Password
-               </button>
-             </div>
-           </form>
->>>>>>> 63f6a70b69a711db9ad9d3cc6452b05239b31242
+              <button
+                type="button"
+                onClick={() => setStep("password")}
+                className="text-xs font-black text-primary hover:underline uppercase tracking-widest text-center"
+              >
+                Or Login with Password
+              </button>
+            </div>
+          </form>
 
           <div className="text-center text-sm font-bold text-on-surface-variant/60 uppercase tracking-widest mt-2 px-2">
             New to BuildBridge?{" "}
@@ -466,7 +465,7 @@ export default function LoginForm() {
             <Button type="submit" isLoading={isLoading} className="h-16 rounded-full text-lg font-black shadow-xl">
               Login
             </Button>
-            <button 
+            <button
               type="button"
               onClick={() => setStep("enter")}
               className="text-xs font-black text-on-surface-variant hover:text-primary uppercase tracking-widest transition-colors"
