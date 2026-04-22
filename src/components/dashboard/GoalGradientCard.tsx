@@ -15,7 +15,7 @@ export function GoalGradientCard({ progress, onAction }: GoalGradientCardProps) 
     <motion.div 
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden p-8 rounded-[2.5rem] bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white shadow-2xl shadow-primary/20 group"
+      className="relative overflow-hidden p-10 rounded-[2.5rem] bg-gradient-to-br from-primary via-primary/90 to-primary/80 text-white shadow-2xl shadow-primary/20 group"
     >
       {/* Decorative Background Elements */}
       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform">
@@ -69,7 +69,7 @@ export function GoalGradientCard({ progress, onAction }: GoalGradientCardProps) 
           
           <Button 
             onClick={onAction}
-            className="w-full md:w-auto h-12 px-8 rounded-2xl bg-white text-primary hover:bg-white/90 hover:scale-[1.02] active:scale-[0.98] border-none font-black shadow-xl transition-all"
+            className="w-full md:w-auto h-12 px-8 rounded-[1.5rem] bg-white text-primary hover:bg-white/90 font-black shadow-lg hover:shadow-xl transition-all hover:-translate-y-1"
           >
             Finish Profile <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
