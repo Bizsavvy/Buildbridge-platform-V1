@@ -76,3 +76,45 @@ export async function adminSyncPhoneUser(phone: string, fullName: string = "Trad
     return { success: false, error: error.message }
   }
 }
+
+export async function syncUserRecord(userId: string, name: string, identifier: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return { success: false, error: "Server configuration missing admin keys." }
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
+
+  try {
+    const isEmail = identifier.includes("@");
+    
+    // 1. Ensure public.users record exists (FK target)
+    const { error: userError } = await supabaseAdmin.from('users').upsert({
+      id: userId,
+      name: name || "Artisan",
+      phone: isEmail ? `email-${userId.slice(0, 8)}` : identifier, // Fallback for NOT NULL phone
+      email: isEmail ? identifier : `${identifier.replace(/[^0-9]/g, '')}@buildbridge.app`,
+      phone_verified_at: new Date().toISOString(), // Fixes constraint "phone_verified_when_registered"
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'id' });
+
+    if (userError) throw userError;
+
+    // 2. Ensure public.profiles record exists
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      user_id: userId,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (profileError) throw profileError;
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("User sync failed:", error);
+    return { success: false, error: error.message };
+  }
+}
