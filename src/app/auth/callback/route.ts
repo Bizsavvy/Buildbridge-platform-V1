@@ -150,12 +150,12 @@ export async function GET(request: NextRequest) {
                 deadlineDate.setDate(deadlineDate.getDate() + days);
 
                 const rawCost = String(discoveryData.cost || '0');
-                const itemCost = parseInt(rawCost.replace(/[^0-9]/g, ""), 10) || 0;
+                const itemCostKobo = (parseInt(rawCost.replace(/[^0-9]/g, ""), 10) || 0) * 100;
 
                 const { error: needInsertError } = await supabaseAdmin.from('needs').insert({
                   profile_id: newProfile.id,
                   item_name: discoveryData.itemName,
-                  item_cost: itemCost,
+                  item_cost: itemCostKobo,
                   story: discoveryData.story || "",
                   impact_statement: discoveryData.impact || "",
                   status: 'active',
