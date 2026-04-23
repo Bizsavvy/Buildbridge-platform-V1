@@ -171,10 +171,10 @@ export function HowItWorksContent() {
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
-                      className={`flex flex-col md:flex-row gap-8 md:gap-16 items-start ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}
+                      className={`flex flex-col md:flex-row gap-8 md:gap-16 items-center ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'}`}
                     >
                       {/* Content Side */}
-                      <div className={`flex-1 ${isEven ? 'md:text-right' : 'md:text-left'} w-full`}>
+                      <div className="flex-1 w-full">
                         <div className="flex items-center gap-4 mb-4 md:hidden">
                           <div className={`w-12 h-12 rounded-2xl ${step.bgColor} ${step.color} flex items-center justify-center shrink-0`}>
                             <step.icon size={24} />
@@ -182,26 +182,35 @@ export function HowItWorksContent() {
                           <span className="text-3xl font-black text-primary/20">{step.number}</span>
                         </div>
                         
-                        <h3 className="text-xl md:text-2xl font-black text-on-surface mb-3 tracking-tight">
-                          {step.title}
-                        </h3>
-                        <p className="text-on-surface-variant leading-relaxed text-base md:text-lg font-medium mb-6">
-                          {step.description}
-                        </p>
+                        <div className="flex flex-col items-start text-left">
+                          <h3 className="text-xl md:text-2xl font-black text-on-surface mb-3 tracking-tight">
+                            {step.title}
+                          </h3>
+                          <p className="text-on-surface-variant leading-relaxed text-base md:text-lg font-medium mb-0 max-w-md">
+                            {step.description}
+                          </p>
+                        </div>
                       </div>
 
                       {/* Center Node */}
-                      <div className="hidden md:flex flex-col items-center justify-start relative z-10 shrink-0">
-                        <div className={`w-16 h-16 rounded-3xl ${step.bgColor} ${step.color} flex items-center justify-center shadow-sm border border-white/20 backdrop-blur-sm`}>
-                          <step.icon size={28} />
+                      <div className="hidden md:flex flex-col items-center justify-center relative z-10 shrink-0">
+                        <div className={`w-16 h-16 rounded-[2rem] ${step.bgColor} ${step.color} flex items-center justify-center shadow-xl border border-white/20 backdrop-blur-sm relative`}>
+                           {/* Glow effect */}
+                           <div className="absolute inset-0 rounded-full blur-2xl opacity-20" style={{ background: 'currentColor' }} />
+                           <step.icon size={28} className="relative z-10" />
                         </div>
                       </div>
 
                       {/* Example Side */}
                       <div className="flex-1 w-full mt-4 md:mt-0">
-                        <div className={`p-6 rounded-[1.5rem] border border-outline-variant/30 relative ${isEven ? 'md:rounded-tl-none' : 'md:rounded-tr-none'}`} style={{ background: 'var(--color-surface-container)' }}>
-                          <div className="text-[10px] font-black uppercase tracking-widest text-primary mb-2">Real Example</div>
-                          <p className="text-on-surface italic leading-relaxed text-sm md:text-base font-medium">
+                        <div className="p-8 rounded-[2.5rem] border border-outline-variant/30 relative overflow-hidden transition-all hover:shadow-lg group" style={{ background: 'var(--color-surface-container)', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                          <div className="absolute -bottom-6 -right-6 p-6 opacity-[0.03] group-hover:opacity-[0.07] group-hover:scale-110 transition-all duration-500 pointer-events-none">
+                             <step.icon size={120} />
+                          </div>
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-primary mb-4 bg-primary/10">
+                            <Sparkles size={12} /> Real Example
+                          </div>
+                          <p className="text-on-surface leading-relaxed text-sm md:text-base font-bold italic relative z-10">
                             &quot;{step.example}&quot;
                           </p>
                         </div>
