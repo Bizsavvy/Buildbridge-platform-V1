@@ -13,6 +13,8 @@ import {
   Calendar, 
   Heart, 
   ShieldCheck,
+  ShieldAlert,
+  Share2,
   MoreHorizontal,
   CheckCircle2
 } from "lucide-react"
@@ -26,9 +28,11 @@ interface NeedCardProps {
   need: Need & { profile?: Profile & { name?: string } };
   className?: string;
   onClick?: () => void;
+  /** When true, shows owner-specific actions (Verify Now / Share Need) instead of public "Back now" */
+  isDashboard?: boolean;
 }
 
-export function NeedCard({ need, className, onClick }: NeedCardProps) {
+export function NeedCard({ need, className, onClick, isDashboard = false }: NeedCardProps) {
   const router = useRouter();
 
   const handleCardClick = () => {
@@ -82,11 +86,28 @@ export function NeedCard({ need, className, onClick }: NeedCardProps) {
      // This state is private dashboard only, not shown in browse feed
    }
    
+   // Detect verification status from profile badge_level
+   const isUnverified = !need.profile?.badge_level || need.profile.badge_level === 'level_0_unverified';
+
    // Button text and state
    let buttonText = "Back now";
    let buttonDisabled = false;
    let buttonClassName = "bg-primary text-white shadow-primary/20";
-   if (isFullyFunded) {
+   let buttonIcon: React.ReactNode = null;
+   let buttonHref: string | null = null;
+
+   if (isDashboard && isUnverified && !isFullyFunded && !isCompleted && !isPartiallyFundedDeadline && !isZeroPledgesDeadline) {
+     // Owner dashboard: unverified user
+     buttonText = "Verify Now";
+     buttonClassName = "bg-yellow-500 text-white shadow-yellow-500/20";
+     buttonIcon = <ShieldAlert className="h-3.5 w-3.5" />;
+     buttonHref = "/profile";
+   } else if (isDashboard && !isUnverified && !isFullyFunded && !isCompleted && !isPartiallyFundedDeadline && !isZeroPledgesDeadline) {
+     // Owner dashboard: verified user with active need
+     buttonText = "Share Need";
+     buttonClassName = "bg-primary text-white shadow-primary/20";
+     buttonIcon = <Share2 className="h-3.5 w-3.5" />;
+   } else if (isFullyFunded) {
      buttonText = "View Story";
      buttonClassName = "bg-primary/10 text-primary shadow-none";
    } else if (isPartiallyFundedDeadline || isZeroPledgesDeadline) {
@@ -107,6 +128,7 @@ export function NeedCard({ need, className, onClick }: NeedCardProps) {
 
   const [isVouched, setIsVouched] = React.useState(false);
   const [localVouchCount, setLocalVouchCount] = React.useState(need.profile?.vouch_count || 0);
+  const [imageError, setImageError] = React.useState(false);
 
   const handleVouchClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -129,15 +151,16 @@ export function NeedCard({ need, className, onClick }: NeedCardProps) {
       )}
     >
       {/* Visual Header */}
-      <div className="relative aspect-[16/10] w-full overflow-hidden">
-        {need.photo_url ? (
+      <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-variant/30">
+        {need.photo_url && !imageError ? (
           <img
             src={need.photo_url}
             alt={need.item_name}
             className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            onError={() => setImageError(true)}
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-surface-variant/30">
+          <div className="flex h-full w-full items-center justify-center">
             <TradeIcon className="h-16 w-16" style={{ color: 'var(--color-primary)', opacity: 0.15 }} />
           </div>
         )}
@@ -153,6 +176,12 @@ export function NeedCard({ need, className, onClick }: NeedCardProps) {
           <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-xl animate-pulse">
             <CheckCircle2 className="h-3 w-3" />
             Project Completed
+          </div>
+        )}
+        {need.status === 'pending_review' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white shadow-xl">
+            <Calendar className="h-3 w-3" />
+            Pending Approval
           </div>
         )}
 
@@ -269,15 +298,26 @@ export function NeedCard({ need, className, onClick }: NeedCardProps) {
              </div>
           </div>
            <Button 
-             className={cn(
-                "rounded-full px-8 font-black text-xs shadow-xl transition-all hover:-translate-y-1",
-                buttonClassName,
-                buttonDisabled && "cursor-not-allowed"
-             )}
-             disabled={buttonDisabled}
-           >
-             {buttonText}
-           </Button>
+              className={cn(
+                 "rounded-full px-8 font-black text-xs shadow-xl transition-all hover:-translate-y-1 flex items-center gap-1.5",
+                 buttonClassName,
+                 buttonDisabled && "cursor-not-allowed"
+              )}
+              disabled={buttonDisabled}
+              onClick={(e: React.MouseEvent) => {
+                if (buttonHref) {
+                  e.stopPropagation();
+                  router.push(buttonHref);
+                } else if (isDashboard && !isUnverified && buttonText === "Share Need") {
+                  e.stopPropagation();
+                  const needUrl = `${window.location.origin}/needs/${need.id}`;
+                  navigator.clipboard.writeText(needUrl);
+                }
+              }}
+            >
+              {buttonIcon}
+              {buttonText}
+            </Button>
         </div>
       </div>
     </Card>

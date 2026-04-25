@@ -40,77 +40,29 @@ export default function DashboardPage() {
   const [selectedNeedForImpact, setSelectedNeedForImpact] = useState<any>(null)
   const [showCopied, setShowCopied] = useState(false)
   const [userName, setUserName] = useState("Artisan")
-  const [authRetryCount, setAuthRetryCount] = useState(0)
   const [isCreatingNeed, setIsCreatingNeed] = useState(false)
-  const MAX_AUTH_RETRIES = 3
 
   const fetchDashboardData = async () => {
     setLoading(true)
 
-    // Bypass auth in development mode for UI testing
-    if (process.env.NODE_ENV === 'development') {
-      console.warn("Dev mode: bypassing client auth check to allow UI testing.");
-      setUserName("Demo Artisan");
-      setProfile({
-        full_name: "Demo Artisan",
-        badge_level: 'level_3_established',
-        vouch_count: 12,
-        delivered_count: 45,
-        id: "demo-123"
-      });
-      setNeeds([
-        {
-          id: "demo-need-1",
-          item_name: "Industrial Sewing Machine",
-          item_cost: 35000000,
-          funded_amount: 21500000,
-          pledge_count: 5,
-          status: 'active',
-          deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-          created_at: new Date().toISOString(),
-          photo_url: "/images/hero/tailor.png",
-          story: "I need an overlock machine to take on more uniform contracts for local schools.",
-          profile: {
-            id: "demo-123",
-            name: "Demo Artisan",
-            location_lga: "Surulere",
-            location_state: "Lagos",
-            trade_category: "tailor",
-            badge_level: "level_3_established",
-            vouch_count: 12,
-            photo_url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=200",
-          }
-        }
-      ]);
-      setLoading(false);
-      return;
-    }
 
     try {
       // 1. Get current user
       const { data: { user }, error: userError } = await supabase.auth.getUser()
 
       if (userError || !user) {
-        console.error('Dashboard auth check failed:', { userError, user })
-        if (authRetryCount < MAX_AUTH_RETRIES) {
-          setAuthRetryCount(prev => prev + 1)
-          setTimeout(() => {
-            fetchDashboardData()
-          }, 1000)
-          return
-        } else {
-          // Not authenticated - redirect to login
-          router.push(`/login?redirectTo=/dashboard`)
-          return
-        }
+        // Not authenticated - redirect to login immediately
+        router.push(`/login?redirectTo=/dashboard`)
+        return
       }
-      setAuthRetryCount(0)
+
       console.log('Dashboard auth check passed:', user.id)
 
       // Get display name from user metadata
       const fullName = user.user_metadata?.full_name || user.email?.split("@")[0] || "Artisan"
       setUserName(fullName)
 
+      // Real data fetching applies to all users including demo
       // 2. Get profile
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
@@ -222,7 +174,7 @@ export default function DashboardPage() {
          </div>
          <div className="flex gap-4">
             <button 
-               onClick={() => window.location.href = '/create-need?mode=create'}
+               onClick={() => router.push('/dashboard/create-need')}
                className="h-14 px-8 rounded-[1.5rem] gap-2 text-title-medium shadow-xl shadow-primary/20 bg-primary text-white flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all font-black"
             >
                <Plus className="h-6 w-6" />
@@ -301,6 +253,7 @@ export default function DashboardPage() {
                     <NeedCard 
                       key={need.id} 
                       need={{...need, profile}} 
+                      isDashboard
                       onClick={() => router.push(`/dashboard/needs/${need.id}`)}
                     />
                   ))}
@@ -312,10 +265,12 @@ export default function DashboardPage() {
                  title="Your first goal starts here"
                  description="Create a need to get tools, equipment, or materials backed by the community."
                  actionLabel="Start a Request"
-                 onAction={() => window.location.href = '/create-need?mode=create'}
+                 onAction={() => router.push('/dashboard/create-need')}
               />
             )}
           </div>
+
+
 
           {/* Badge Display Area */}
           <div className="pt-8 border-t border-outline-variant">
@@ -325,8 +280,7 @@ export default function DashboardPage() {
         </div>
 
         {/* ── RIGHT BENTO COLUMN (col-span-4) ── */}
-        <div className="lg:col-span-4 flex flex-col gap-8">
-          
+        <div className="lg:col-span-4 flex flex-col gap-8 lg:sticky lg:top-24 h-fit">
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
              <div className="p-6 rounded-[2rem] bg-surface border border-outline-variant/30 flex flex-col justify-center items-start gap-2 shadow-sm hover:shadow-md transition-all group">

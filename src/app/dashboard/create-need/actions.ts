@@ -1,7 +1,7 @@
 "use server"
 
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
-import { revalidatePath } from "next/cache"
 
 export async function createNeedAction(formData: FormData) {
   const supabase = await createClient()
@@ -45,15 +45,25 @@ export async function createNeedAction(formData: FormData) {
   // 4. Upload photo to 'needs' bucket
   const fileExt = photoFile.name.split('.').pop()
   const fileName = `${user.id}-${Date.now()}.${fileExt}`
-  const filePath = `needs/${fileName}`
+  const filePath = `covers/${fileName}`
 
-  const { error: uploadError } = await supabase.storage
+  const supabaseAdmin = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Pass the native File object directly — Supabase JS supports it natively
+
+  const { error: uploadError } = await supabaseAdmin.storage
     .from("needs")
-    .upload(filePath, photoFile)
+    .upload(filePath, photoFile, {
+      contentType: photoFile.type,
+      upsert: false,
+    })
 
-  if (uploadError) throw new Error("Failed to upload photo")
+  if (uploadError) throw new Error(`Failed to upload photo: ${uploadError.message}`)
 
-  const { data: { publicUrl } } = supabase.storage
+  const { data: { publicUrl } } = supabaseAdmin.storage
     .from("needs")
     .getPublicUrl(filePath)
 
@@ -71,8 +81,8 @@ export async function createNeedAction(formData: FormData) {
       photo_url: publicUrl,
       photo_geotag_lat: lat,
       photo_geotag_lng: lng,
-      story: story.slice(0, 150), // Enforce DB char limit
-      impact_statement: impact.slice(0, 200), // Enforce DB char limit
+      story: story,
+      impact_statement: impact,
       deadline: deadlineDate.toISOString().split('T')[0], // DATE format
       status: "pending_review",
       impact_statement_source: "manual",
@@ -85,6 +95,11 @@ export async function createNeedAction(formData: FormData) {
     throw new Error(dbError.message)
   }
 
-  revalidatePath("/dashboard")
+  // NOTE: Do NOT call revalidatePath("/dashboard") here.
+  // It forces Next.js to remount the create-need layout, resetting
+  // client-side currentStep state back to 0 and preventing the
+  // congratulatory success step from being displayed.
+  // Instead, the "Go to Dashboard" button on the success step
+  // triggers router.refresh() to pick up the new data.
   return { success: true }
 }

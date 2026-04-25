@@ -205,6 +205,7 @@ export function BrowseFilters({ onFilterChange, activeFilters }: BrowseFiltersPr
             >
                <Badge 
                   level={level as any} 
+                  showLabel={false}
                   className={cn(
                       "cursor-pointer transition-all",
                       activeFilters.badgeLevel === level ? "scale-105" : "grayscale-[0.3]"

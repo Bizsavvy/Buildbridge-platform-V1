@@ -46,13 +46,12 @@ export async function adminSyncPhoneUser(phone: string, fullName: string = "Trad
             }
           })
 
-          // Sync to public.users table
-          await supabaseAdmin.from('users').upsert({
-            id: linkData.user.id,
-            phone: phone,
-            name: linkData.user.user_metadata?.full_name || fullName || "Tradesperson",
-            phone_verified_at: linkData.user.user_metadata?.phone_verified ? undefined : new Date().toISOString()
-          }, { onConflict: 'id' })
+          // Also sync to public.profiles table
+          await supabaseAdmin.from('profiles').upsert({
+            user_id: linkData.user.id,
+            full_name: linkData.user.user_metadata?.full_name || fullName || "Tradesperson",
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' })
         }
         return { success: true, message: "User already exists." }
       }
@@ -61,18 +60,109 @@ export async function adminSyncPhoneUser(phone: string, fullName: string = "Trad
     }
 
     if (user && user.user) {
-      // Sync to public.users table
-      await supabaseAdmin.from('users').upsert({
-        id: user.user.id,
-        phone: phone,
-        name: fullName || "Tradesperson",
-        phone_verified_at: new Date().toISOString()
-      }, { onConflict: 'id' })
+      // Also sync to public.profiles table
+      await supabaseAdmin.from('profiles').upsert({
+        user_id: user.user.id,
+        full_name: fullName || "Tradesperson",
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' })
     }
 
     return { success: true, message: "Created new user successfully." }
   } catch (error: any) {
     console.error("Fatal admin sync error:", error)
     return { success: false, error: error.message }
+  }
+}
+
+export async function syncUserRecord(userId: string, name: string, identifier: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return { success: false, error: "Server configuration missing admin keys." }
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
+
+  try {
+    const isEmail = identifier.includes("@");
+    
+    // 1. Ensure public.profiles record exists
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      user_id: userId,
+      full_name: name || "Artisan",
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (profileError) throw profileError;
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("User sync failed:", error);
+    return { success: false, error: error.message };
+  }
+}
+
+export async function registerUserAdmin(data: { identifier: string, name: string, password: string }) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return { success: false, error: "Server configuration missing admin keys." }
+  }
+
+  const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  })
+
+  let email = data.identifier;
+  const isEmail = email.includes("@");
+  if (!isEmail) {
+    let clean = email.trim();
+    if (clean.startsWith("0") && clean.length === 11) clean = "+234" + clean.slice(1);
+    else if (!clean.startsWith("+")) clean = "+234" + clean;
+    email = `${clean.replace(/[^0-9]/g, '')}@buildbridge.app`;
+  }
+
+  try {
+    // 1. Create user via Admin API (bypasses verification)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: data.password,
+      email_confirm: true, // AUTO-VERIFY
+      user_metadata: {
+        full_name: data.name,
+        is_tradesperson: true,
+        phone: isEmail ? null : data.identifier
+      }
+    });
+
+    if (authError) {
+      if (authError.message.includes("already registered") || authError.message.includes("already exists")) {
+        return { success: false, error: "An account with this email/phone already exists. Please log in." };
+      }
+      throw authError;
+    }
+
+    const userId = authData.user.id;
+
+    // 2. Sync to public tables
+    const { error: profileError } = await supabaseAdmin.from('profiles').upsert({
+      user_id: userId,
+      full_name: data.name,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (profileError) {
+      console.error("Profile record sync failed in registerUserAdmin:", profileError);
+    }
+
+    return { success: true, email, userId };
+  } catch (error: any) {
+    console.error("Admin registration failed:", error);
+    return { success: false, error: error.message };
   }
 }

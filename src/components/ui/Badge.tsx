@@ -12,6 +12,7 @@ export type BadgeLevelType = 0 | 1 | 2 | 3 | 4;
 
 export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
   level: BadgeLevelType;
+  showLabel?: boolean;
 }
 
 const levelConfig: Record<number, { bg: string; color: string; icon: React.ElementType; label: string }> = {
@@ -48,7 +49,7 @@ const levelConfig: Record<number, { bg: string; color: string; icon: React.Eleme
 }
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
-  ({ className, level, children, ...props }, ref) => {
+  ({ className, level, children, showLabel = true, ...props }, ref) => {
     
     const config = levelConfig[level] || levelConfig[0];
     const Icon = config.icon;
@@ -64,7 +65,7 @@ const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(
         {...props}
       >
         <Icon className="h-4 w-4" />
-        {children || config.label}
+        {showLabel && (children || config.label)}
       </div>
     )
   }
