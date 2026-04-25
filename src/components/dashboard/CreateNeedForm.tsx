@@ -29,6 +29,7 @@ import { useVoiceInput } from "@/hooks/useVoiceInput"
 import { useAIGenerator } from "@/hooks/useAIGenerator"
 import { cn } from "@/lib/utils"
 import dynamic from "next/dynamic"
+import confetti from "canvas-confetti"
 
 // Dynamically import Lottie to avoid SSR issues
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false })
@@ -158,10 +159,31 @@ export function CreateNeedForm({ tradeCategory }: CreateNeedFormProps) {
       const result = await createNeedAction(data)
       
       if (result.success) {
+        // Fire confetti immediately on success
+        confetti({
+          particleCount: 180,
+          spread: 90,
+          origin: { y: 0.5 },
+          colors: ["#6366f1", "#8b5cf6", "#f59e0b", "#10b981", "#ffffff"],
+        })
+        setTimeout(() => {
+          confetti({
+            particleCount: 80,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0, y: 0.6 },
+          })
+          confetti({
+            particleCount: 80,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1, y: 0.6 },
+          })
+        }, 300)
         setCurrentStep(7) // Go to Success Step
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Failed to create need.")
+      setErrorMsg(err.message || "Failed to create need. Please try again.")
     } finally {
       setLoading(false)
     }
@@ -637,6 +659,13 @@ export function CreateNeedForm({ tradeCategory }: CreateNeedFormProps) {
                     <Button onClick={handleSubmit} isLoading={loading} disabled={!formData.agreed_to_terms} className="w-full text-headline-small py-8">
                         Submit for Review
                     </Button>
+
+                    {errorMsg && (
+                      <div className="p-4 bg-error/10 border border-error/30 rounded-2xl flex gap-3 items-start">
+                        <span className="text-error text-lg flex-shrink-0">⚠</span>
+                        <p className="text-sm font-bold text-error leading-relaxed">{errorMsg}</p>
+                      </div>
+                    )}
                 </div>
             </motion.div>
         )

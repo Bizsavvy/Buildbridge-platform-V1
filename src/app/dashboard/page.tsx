@@ -20,7 +20,7 @@ import {
   CheckCircle2
 } from "lucide-react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { AnimatePresence, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -28,8 +28,9 @@ import { GoalGradientCard } from "@/components/dashboard/GoalGradientCard"
 import { CreateNeedFlow } from "@/components/dashboard/CreateNeedFlow"
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader"
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const supabase = createClient()
 
   const [profile, setProfile] = useState<any>(null)
@@ -81,6 +82,25 @@ export default function DashboardPage() {
           .order('created_at', { ascending: false })
 
         if (needsData) {
+          // If we came from a successful creation but the DB hasn't synced it yet, inject a mock one
+          const hasNewSuccessParam = searchParams.get('new_need') === 'success'
+          if (hasNewSuccessParam && !needsData.some(n => n.status === 'pending_review')) {
+            needsData.unshift({
+              id: 'mock-pending-' + Date.now(),
+              profile_id: profileData.id,
+              item_name: 'New Item Review',
+              item_cost: 0,
+              funded_amount: 0,
+              pledge_count: 0,
+              status: 'pending_review',
+              photo_url: '',
+              story: 'Under review by the BuildBridge team.',
+              deadline: new Date().toISOString(),
+              created_at: new Date().toISOString()
+            })
+            // clear the URL param so it doesn't stay stuck
+            window.history.replaceState({}, '', '/dashboard')
+          }
           setNeeds(needsData)
         }
       } else {
@@ -103,7 +123,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData()
-  }, [])
+  }, [searchParams])
 
   const handleVerificationSuccess = async () => {
     await fetchDashboardData()
@@ -427,5 +447,13 @@ export default function DashboardPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function DashboardPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen bg-background pt-24 pb-20 flex items-center justify-center"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>}>
+      <DashboardContent />
+    </React.Suspense>
   )
 }

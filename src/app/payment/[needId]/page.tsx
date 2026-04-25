@@ -90,7 +90,7 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
 
   return (
     <main className="min-h-screen bg-background pt-24 pb-24">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
 
         {/* Navigation breadcrumb */}
         <div className="flex items-center justify-between mb-10">
@@ -127,75 +127,12 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
           </p>
         </div>
 
-        {/* Two-column layout: artisan context + pledge flow */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+        {/* Single-column layout: artisan context + pledge flow */}
+        <div className="flex flex-col gap-8">
 
-          {/* LEFT: Artisan context card */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
 
-            {/* Cover photo */}
-            <div className="relative w-full aspect-[4/3] rounded-[2rem] overflow-hidden bg-surface-variant/30 shadow-xl shadow-black/10">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={need.photo_url}
-                alt={need.item_name}
-                className="absolute inset-0 w-full h-full object-cover object-center"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-              {/* Need name overlay */}
-              <div className="absolute bottom-0 left-0 right-0 p-5">
-                <p className="text-white font-black text-lg leading-tight drop-shadow-sm">{need.item_name}</p>
-              </div>
-            </div>
-
-            {/* Artisan identity card */}
-            <div className="p-6 bg-surface rounded-[2rem] border border-outline-variant/40 shadow-sm flex items-center gap-4">
-              <div className="relative shrink-0">
-                <div className="h-14 w-14 rounded-2xl overflow-hidden bg-surface-variant">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={need.profile.photo_url}
-                    alt={need.profile.name}
-                    className="h-full w-full object-cover object-center"
-                  />
-                </div>
-                <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full bg-green-500 border-2 border-white flex items-center justify-center shadow">
-                  <ShieldCheck className="h-2.5 w-2.5 text-white" />
-                </div>
-              </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-black text-on-surface text-base">{need.profile.name}</span>
-                <span className="text-xs font-bold text-on-surface-variant capitalize">
-                  {need.profile.trade_category?.replace("_", " ")} · {need.profile.location_lga}, {need.profile.location_state}
-                </span>
-              </div>
-            </div>
-
-            {/* Progress snapshot */}
-            <div className="p-6 bg-surface rounded-[2rem] border border-outline-variant/40 shadow-sm flex flex-col gap-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-on-surface-variant opacity-60">
-                Funding Progress
-              </p>
-              <div className="flex items-end justify-between">
-                <span className="text-3xl font-black text-on-surface">{fundedPct}%</span>
-                <span className="text-sm font-bold text-on-surface-variant">
-                  {formatNGN(need.funded_amount)} of {formatNGN(need.item_cost)}
-                </span>
-              </div>
-              <div className="w-full h-2.5 rounded-full bg-surface-variant/50 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-primary transition-all"
-                  style={{ width: `${Math.min(100, fundedPct)}%` }}
-                />
-              </div>
-              <p className="text-xs font-bold text-on-surface-variant">
-                {need.pledge_count} backers · {Math.ceil((new Date(need.deadline).getTime() - Date.now()) / 86400000)} days left
-              </p>
-            </div>
-          </div>
-
-          {/* RIGHT: Pledge flow */}
-          <div className="lg:col-span-3">
+          {/* Pledge flow */}
+          <div className="w-full">
             <div className="bg-surface rounded-[2.5rem] border border-outline-variant/30 shadow-[0_20px_60px_rgba(0,0,0,0.07)] overflow-hidden">
               <PledgeFlow
                 needId={need.id}
