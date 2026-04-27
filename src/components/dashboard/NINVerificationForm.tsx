@@ -146,13 +146,13 @@ export function NINVerificationForm({ onSuccess, onClose }: NINVerificationFormP
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center py-12 gap-8 text-center"
           >
-             <div className="h-24 w-24 rounded-full bg-badge-2 text-white flex items-center justify-center shadow-lg shadow-badge-2/30">
+             <div className="h-24 w-24 rounded-full bg-blue-500/10 text-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 border border-blue-500/20">
                 <CheckCircle2 className="h-14 w-14" />
              </div>
              <div className="flex flex-col gap-2">
-                <h3 className="text-display-small font-black text-badge-2">Identity <span className="text-on-surface">Verified!</span></h3>
+                <h3 className="text-display-small font-black text-on-surface">NIN <span className="text-blue-600">Submitted!</span></h3>
                 <p className="text-body-large text-on-surface-variant max-w-sm">
-                   Congratulations! You've reached **Level 4: Platform Verified**.
+                   Your identity verification has been submitted for admin review. You'll reach <span className="font-black text-on-surface">Level 4: Platform Verified</span> once approved.
                 </p>
              </div>
 

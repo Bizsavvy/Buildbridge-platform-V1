@@ -71,15 +71,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to store verification securely." }, { status: 500 })
     }
 
-    // Automatically boost their Badge Level to 0 if they were unverified
-    let newLevel = profile.badge_level;
-    if (!newLevel || newLevel === 'level_0_unverified') {
-        newLevel = 'level_0_unverified'; // Ensure type match
-        await supabase
-           .from('profiles')
-           .update({ badge_level: newLevel })
-           .eq('id', profile.id)
-    }
+    // Badge upgrade happens when admin approves the verification
 
     return NextResponse.json({ success: true, message: "Identity submitted for review. You'll be notified once verified." })
 

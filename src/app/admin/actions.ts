@@ -110,6 +110,16 @@ export async function approveVerification(verificationId: string) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  // Get the verification record to find the profile
+  const { data: verification } = await supabaseAdmin
+    .from("verifications")
+    .select("profile_id")
+    .eq("id", verificationId)
+    .single()
+
+  if (!verification) throw new Error("Verification not found")
+
+  // Update verification as approved
   const { error } = await supabaseAdmin
     .from("verifications")
     .update({
@@ -122,6 +132,17 @@ export async function approveVerification(verificationId: string) {
     .eq("id", verificationId)
 
   if (error) throw new Error(error.message)
+
+  // Upgrade profile badge to Level 4 (Platform Verified)
+  const { error: profileError } = await supabaseAdmin
+    .from("profiles")
+    .update({
+      badge_level: "level_4_platform_verified",
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", verification.profile_id)
+
+  if (profileError) throw new Error(profileError.message)
 
   revalidatePath("/admin")
   return { success: true }

@@ -258,9 +258,11 @@ export function NeedCard({ need, className, onClick, onDelete, onEdit, isDashboa
               alt={need.profile?.full_name || need.profile?.name || "Tradesperson"}
               className="h-12 w-12 rounded-2xl object-cover border-2 border-white shadow-md"
             />
-            <div className="absolute -bottom-1 -right-1 rounded-full p-1 bg-green-500 border-2 border-white shadow-lg">
-              <ShieldCheck className="h-3 w-3 text-white" />
-            </div>
+            {need.profile?.badge_level === 'level_4_platform_verified' && (
+              <div className="absolute -bottom-1 -right-1 rounded-full p-1 bg-green-500 border-2 border-white shadow-lg">
+                <ShieldCheck className="h-3 w-3 text-white" />
+              </div>
+            )}
           </div>
           <div className="flex flex-col min-w-0">
             <h3 className="text-lg font-black truncate text-on-surface leading-none">

@@ -3,7 +3,8 @@
 import * as React from "react"
 import { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Check, X, ShieldCheck, Calendar, MapPin, Briefcase } from "lucide-react"
+import { Button } from "@/components/ui/Button"
+import { CheckCircle2, XCircle, ShieldCheck, Calendar, MapPin, Briefcase, Loader2 } from "lucide-react"
 import { approveVerification, rejectVerification } from "./actions"
 import { cn } from "@/lib/utils"
 
@@ -130,34 +131,27 @@ export function AdminVerificationList({ verifications }: Props) {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    onClick={() => handleReject(v.id)}
-                    disabled={processing === v.id}
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl border-2 border-error/20 text-error font-bold text-xs hover:bg-error hover:text-white transition-all disabled:opacity-50"
-                  >
-                    <X className="h-4 w-4" />
-                    Reject
-                  </button>
-                  <button
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button
                     onClick={() => handleApprove(v.id)}
                     disabled={processing === v.id}
-                    className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-success text-on-success font-bold text-xs hover:opacity-90 transition-all disabled:opacity-50 shadow-sm"
-                    style={{
-                      background: processing === v.id ? undefined : "var(--color-success)",
-                      color: "var(--color-on-success)",
-                    }}
+                    className="h-10 px-5 rounded-full text-xs font-black bg-success hover:bg-success/90 text-on-success shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5 flex-1"
                   >
                     {processing === v.id ? (
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
                     ) : (
-                      <Check className="h-4 w-4" />
+                      <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
                     )}
                     Approve
-                  </button>
+                  </Button>
+                  <Button
+                    onClick={() => handleReject(v.id)}
+                    disabled={processing === v.id}
+                    variant="outline"
+                    className="h-10 px-4 rounded-full text-xs font-black border-red-200 text-red-600 hover:bg-red-50 flex-shrink-0"
+                  >
+                    <XCircle className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </div>
             </motion.div>
