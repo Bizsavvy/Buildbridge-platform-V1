@@ -143,8 +143,8 @@ export function HighVelocityAuth() {
             if (cat.includes('tailor')) tradeCategory = 'tailor';
             else if (cat.includes('carpenter')) tradeCategory = 'carpenter';
             else if (cat.includes('welder')) tradeCategory = 'welder';
-            else if (cat.includes('cobbler') || cat.includes('shoemaker')) tradeCategory = 'cobbler_shoemaker';
-            else if (cat.includes('baker') || cat.includes('food')) tradeCategory = 'baker_food';
+            else if (cat.includes('cobbler') || cat.includes('shoemaker')) tradeCategory = 'cobbler';
+            else if (cat.includes('baker') || cat.includes('food')) tradeCategory = 'baker';
             else if (cat.includes('mechanic')) tradeCategory = 'mechanic';
             else if (cat.includes('electrician')) tradeCategory = 'electrician';
           }

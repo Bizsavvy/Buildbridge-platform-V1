@@ -17,7 +17,11 @@ import {
   MoreHorizontal,
   CheckCircle2,
   Trash2,
-  PencilLine
+  PencilLine,
+  Clock,
+  TrendingUp,
+  XCircle,
+  Sparkles
 } from "lucide-react"
 import { cn, handleShare, formatStateName } from "@/lib/utils"
 import { type Need, type Profile } from "@/types"
@@ -163,16 +167,58 @@ export function NeedCard({ need, className, onClick, onDelete, onEdit, isDashboa
         </div>
 
         {/* Status Badge */}
+        {need.status === 'pending_review' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-warning text-on-warning shadow-xl">
+            <Clock className="h-3 w-3" />
+            Pending Review
+          </div>
+        )}
+        {need.status === 'active' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-success text-on-success shadow-xl">
+            <TrendingUp className="h-3 w-3" />
+            Active
+          </div>
+        )}
+        {need.status === 'rejected' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-error text-on-error shadow-xl">
+            <XCircle className="h-3 w-3" />
+            Rejected
+          </div>
+        )}
+        {need.status === 'funded' && !isCompleted && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-success text-on-success shadow-xl">
+            <Sparkles className="h-3 w-3" />
+            Fully Funded
+          </div>
+        )}
+        {isCompleted && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-primary text-on-primary shadow-xl animate-pulse">
+            <CheckCircle2 className="h-3 w-3" />
+            Completed
+          </div>
+        )}
+        {need.status === 'active' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-green-500 text-white shadow-xl">
+            <TrendingUp className="h-3 w-3" />
+            Active
+          </div>
+        )}
+        {need.status === 'rejected' && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-red-500 text-white shadow-xl">
+            <XCircle className="h-3 w-3" />
+            Rejected
+          </div>
+        )}
+        {need.status === 'funded' && !isCompleted && (
+          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-teal-500 text-white shadow-xl">
+            <Sparkles className="h-3 w-3" />
+            Fully Funded
+          </div>
+        )}
         {isCompleted && (
           <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-primary text-white shadow-xl animate-pulse">
             <CheckCircle2 className="h-3 w-3" />
-            Project Completed
-          </div>
-        )}
-        {need.status === 'pending_review' && (
-          <div className="absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-1.5 text-[10px] font-black uppercase tracking-widest bg-amber-500 text-white shadow-xl">
-            <Calendar className="h-3 w-3" />
-            Pending Approval
+            Completed
           </div>
         )}
 

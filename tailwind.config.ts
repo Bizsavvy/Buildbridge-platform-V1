@@ -35,6 +35,10 @@ const config: Config = {
         "outline-variant": "var(--color-material-theme-sys-light-outline-variant)",
         error: "var(--color-material-theme-sys-light-error)",
         "on-error": "var(--color-material-theme-sys-light-on-error)",
+        success: "var(--color-success)",
+        "on-success": "var(--color-on-success)",
+        warning: "var(--color-warning)",
+        "on-warning": "var(--color-on-warning)",
         
         // Badges Mappings
         "badge-0": "var(--primitive-colors-2-key-colors-neutral-variant)",
