@@ -64,12 +64,14 @@ function SidebarContent({
   pathname,
   displayName,
   userEmail,
+  photoUrl,
   onSignOut,
 }: {
   onClose?: () => void;
   pathname: string;
   displayName: string;
   userEmail: string;
+  photoUrl?: string | null;
   onSignOut: () => void;
 }) {
   const isActive = (href: string, exact: boolean) => {
@@ -163,8 +165,12 @@ function SidebarContent({
           className="flex items-center gap-3 px-3 py-3 rounded-[14px] bg-white/8 hover:bg-white/12 transition-colors group"
         >
           {/* Avatar */}
-          <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-inner">
-            {displayName.charAt(0).toUpperCase()}
+          <div className="w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-black text-sm shrink-0 shadow-inner overflow-hidden">
+            {photoUrl ? (
+              <img src={photoUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              displayName.charAt(0).toUpperCase()
+            )}
           </div>
 
           <div className="flex-1 min-w-0">
@@ -200,6 +206,7 @@ export function DashboardSidebar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [displayName, setDisplayName] = React.useState("Artisan");
   const [userEmail, setUserEmail] = React.useState("");
+  const [photoUrl, setPhotoUrl] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const fetchUser = async () => {
@@ -211,6 +218,16 @@ export function DashboardSidebar() {
           user.user_metadata?.full_name || user.email?.split("@")[0] || "Artisan"
         );
         setUserEmail(user.email || "");
+
+        // Fetch profile photo
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("photo_url")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (profile?.photo_url) {
+          setPhotoUrl(profile.photo_url);
+        }
       }
     };
     fetchUser();
@@ -226,7 +243,7 @@ export function DashboardSidebar() {
     router.push("/");
   };
 
-  const sidebarProps = { pathname, displayName, userEmail, onSignOut: handleSignOut };
+  const sidebarProps = { pathname, displayName, userEmail, photoUrl, onSignOut: handleSignOut };
 
   return (
     <>
@@ -275,9 +292,13 @@ export function DashboardSidebar() {
         <Logo variant="white" />
 
         {/* Avatar shortcut */}
-        <Link href="/profile" aria-label="Profile">
-          <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-black text-xs">
-            {displayName.charAt(0).toUpperCase()}
+        <Link href="/dashboard/account" aria-label="Account">
+          <div className="w-8 h-8 rounded-full bg-white/20 border border-white/30 flex items-center justify-center text-white font-black text-xs overflow-hidden">
+            {photoUrl ? (
+              <img src={photoUrl} alt={displayName} className="w-full h-full object-cover" />
+            ) : (
+              displayName.charAt(0).toUpperCase()
+            )}
           </div>
         </Link>
       </header>

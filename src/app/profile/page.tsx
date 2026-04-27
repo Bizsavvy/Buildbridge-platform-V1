@@ -11,6 +11,45 @@ import { Card } from "@/components/ui/Card";
 import { cn, formatStateName } from "@/lib/utils";
 import { NIGERIA_LOCATIONS } from "@/lib/data/nigeria";
 
+// Compress image client-side to stay under body size limit
+function compressImage(file: File, maxDimension: number, quality: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const { width, height } = img;
+      let newWidth = width;
+      let newHeight = height;
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          newWidth = maxDimension;
+          newHeight = Math.round((height / width) * maxDimension);
+        } else {
+          newHeight = maxDimension;
+          newWidth = Math.round((width / height) * maxDimension);
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { reject(new Error("Canvas context unavailable")); return; }
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) { reject(new Error("Canvas toBlob failed")); return; }
+          resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+        },
+        "image/jpeg",
+        quality
+      );
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Failed to load image")); };
+    img.src = url;
+  });
+}
+
 // Edit Profile Modal
 function EditProfileModal({
   isOpen,
@@ -432,7 +471,10 @@ export default function ProfilePage() {
   const [showBankModal, setShowBankModal] = useState(false);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [impactStories, setImpactStories] = useState<any[]>([]);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   const supabase = createClient();
 
   const fetchProfile = async () => {
@@ -532,6 +574,68 @@ export default function ProfilePage() {
     setGalleryImages((prev) => [...prev, ...newImages]);
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    setUploadError(null);
+    try {
+      // Compress image before upload to stay under body size limit
+      const compressedFile = await compressImage(file, 800, 0.7);
+
+      const formData = new FormData();
+      formData.append("photo", compressedFile, compressedFile.name);
+      formData.append("folder", "avatars");
+
+      const res = await fetch("/api/upload-photo", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!result.success) {
+        throw new Error(result.error || "Upload failed");
+      }
+
+      // Save photo_url to profiles table
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser) throw new Error("Not authenticated");
+
+      const { error } = await supabase
+        .from("profiles")
+        .upsert(
+          {
+            user_id: currentUser.id,
+            photo_url: result.url,
+            photo_uploaded_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
+
+      if (error) throw error;
+
+      // Update local state immediately for instant UI feedback
+      setProfile((prev: any) => ({
+        ...prev,
+        photo_url: result.url,
+        photo_uploaded_at: new Date().toISOString(),
+      }));
+      setUploadError(null);
+    } catch (err: any) {
+      console.error("Avatar upload failed:", err);
+      setUploadError(err.message || "Failed to upload photo. Please try again.");
+    } finally {
+      setIsUploadingPhoto(false);
+      // Reset the file input so the same file can be re-selected
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
+    }
+  };
+
   const removeGalleryImage = (index: number) => {
     setGalleryImages((prev) => prev.filter((_, i) => i !== index));
   };
@@ -573,24 +677,52 @@ export default function ProfilePage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative h-64 sm:h-80 rounded-[3rem] overflow-hidden bg-primary shadow-2xl"
+        className="relative min-h-64 sm:h-80 rounded-[3rem] overflow-hidden bg-primary shadow-2xl pb-36 sm:pb-0"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-primary/80" />
         <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
 
-        <div className="absolute -bottom-1 left-0 right-0 p-8 flex flex-col sm:flex-row items-end gap-6 text-white">
+        <div className="absolute -bottom-1 left-0 right-0 p-4 sm:p-8 flex flex-col sm:flex-row items-center sm:items-end gap-4 sm:gap-6 text-white text-center sm:text-left">
           <div className="relative group">
-            <div className="w-32 h-32 sm:w-40 sm:h-40 rounded-[2.5rem] bg-white text-primary flex items-center justify-center text-5xl font-black border-8 border-primary shadow-2xl">
-              {initial.toUpperCase()}
-            </div>
-            <button className="absolute bottom-2 right-2 p-2 bg-yellow-400 text-[#121212] rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all">
-              <Camera className="w-5 h-5" />
+            {profile?.photo_url ? (
+              <div className="w-28 h-28 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border-[6px] sm:border-8 border-primary shadow-2xl">
+                <img
+                  src={profile.photo_url}
+                  alt="Profile"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="w-28 h-28 sm:w-40 sm:h-40 rounded-[2rem] sm:rounded-[2.5rem] bg-white text-primary flex items-center justify-center text-4xl sm:text-5xl font-black border-[6px] sm:border-8 border-primary shadow-2xl">
+                {isUploadingPhoto ? (
+                  <svg className="animate-spin h-8 w-8 sm:h-10 sm:w-10 text-primary/40" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  initial.toUpperCase()
+                )}
+              </div>
+            )}
+            <input
+              type="file"
+              ref={avatarInputRef}
+              onChange={handleAvatarUpload}
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+            />
+            <button
+              onClick={() => avatarInputRef.current?.click()}
+              disabled={isUploadingPhoto}
+              className="absolute -bottom-1 -right-1 sm:bottom-2 sm:right-2 p-1.5 sm:p-2 bg-yellow-400 text-[#121212] rounded-full shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
 
-          <div className="flex-grow pb-4">
-            <h1 className="text-4xl sm:text-5xl font-black tracking-tight">{profile?.full_name || "Artisan"}</h1>
-            <p className="opacity-80 font-bold uppercase tracking-widest text-xs mt-1 flex items-center gap-2">
+          <div className="flex-1 sm:pb-4">
+            <h1 className="text-2xl sm:text-5xl font-black tracking-tight">{profile?.full_name || "Artisan"}</h1>
+            <p className="opacity-80 font-bold uppercase tracking-widest text-[10px] sm:text-xs mt-1 flex items-center justify-center sm:justify-start gap-2">
               <Briefcase className="w-3 h-3" />
               {tradeLabel}
             </p>
@@ -598,7 +730,7 @@ export default function ProfilePage() {
 
           <Button
             onClick={() => setShowEditModal(true)}
-            className="mb-4 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 gap-2 cursor-pointer"
+            className="sm:mb-4 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md border border-white/20 gap-2 cursor-pointer text-sm px-5 py-2.5"
           >
             <Edit2 className="w-4 h-4" />
             Edit Profile
@@ -855,7 +987,21 @@ export default function ProfilePage() {
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          </div>
+      <AnimatePresence>
+        {uploadError && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[80] bg-error text-white py-4 px-8 rounded-2xl shadow-2xl font-bold text-sm flex items-center gap-3 cursor-pointer"
+            onClick={() => setUploadError(null)}
+          >
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            {uploadError}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
                         </div>
                       ))}
                       <button
