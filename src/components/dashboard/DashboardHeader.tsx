@@ -8,9 +8,10 @@ interface DashboardHeaderProps {
   userName: string;
   userEmail?: string;
   avatarLetter: string;
+  photoUrl?: string | null;
 }
 
-export function DashboardHeader({ userName, userEmail, avatarLetter }: DashboardHeaderProps) {
+export function DashboardHeader({ userName, userEmail, avatarLetter, photoUrl }: DashboardHeaderProps) {
   return (
     <div className="flex items-center justify-between gap-6 mb-8">
       {/* ── Search Bar ── */}
@@ -50,8 +51,12 @@ export function DashboardHeader({ userName, userEmail, avatarLetter }: Dashboard
               Artisan
             </span>
           </div>
-          <div className="w-11 h-11 rounded-xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-sm shadow-inner group-hover:scale-105 transition-transform">
-            {avatarLetter}
+          <div className="w-11 h-11 rounded-xl bg-primary/10 border-2 border-primary/20 flex items-center justify-center text-primary font-black text-sm shadow-inner group-hover:scale-105 transition-transform overflow-hidden">
+            {photoUrl ? (
+              <img src={photoUrl} alt={userName} className="w-full h-full object-cover" />
+            ) : (
+              avatarLetter
+            )}
           </div>
           <ChevronDown className="h-4 w-4 text-on-surface-variant/40 group-hover:text-primary transition-colors" />
         </div>

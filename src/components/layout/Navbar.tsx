@@ -19,6 +19,7 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   const [user, setUser] = React.useState<SupabaseUser | null>(null);
+  const [photoUrl, setPhotoUrl] = React.useState<string | null>(null);
   const [showContactSupport, setShowContactSupport] = React.useState(false);
   const supabase = React.useMemo(() => createClient(), []);
 
@@ -36,13 +37,33 @@ export function Navbar() {
       if (!supabase) return;
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+
+      // Fetch profile photo
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("photo_url")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        setPhotoUrl(profile?.photo_url || null);
+      }
     };
     fetchUser();
 
     if (!supabase) return;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("photo_url")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+        setPhotoUrl(profile?.photo_url || null);
+      } else {
+        setPhotoUrl(null);
+      }
     });
 
     return () => {
@@ -111,6 +132,7 @@ export function Navbar() {
                 <UserMenu
                   user={user}
                   displayName={displayName}
+                  photoUrl={photoUrl}
                   onSignOut={handleSignOut}
                   isScrolled={isScrolled}
                   onContactSupport={() => setShowContactSupport(true)}
@@ -153,12 +175,14 @@ export function Navbar() {
 function UserMenu({
   user,
   displayName,
+  photoUrl,
   onSignOut,
   isScrolled,
   onContactSupport
 }: {
   user: SupabaseUser | null,
   displayName: string,
+  photoUrl?: string | null,
   onSignOut: () => void,
   isScrolled: boolean,
   onContactSupport: () => void
@@ -185,8 +209,12 @@ function UserMenu({
           isScrolled ? "hover:bg-primary/5" : "hover:bg-white/10"
         )}
       >
-        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner">
-          {displayName.charAt(0).toUpperCase()}
+        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black border border-primary/20 shadow-inner overflow-hidden">
+          {photoUrl ? (
+            <img src={photoUrl} alt={displayName} className="w-full h-full object-cover" />
+          ) : (
+            displayName.charAt(0).toUpperCase()
+          )}
         </div>
         <span className={cn(
           "hidden sm:block text-sm font-black tracking-tight",
