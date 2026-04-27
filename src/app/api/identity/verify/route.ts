@@ -47,16 +47,17 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: "Identity verification failed at the provider level." }, { status: 422 })
     }
 
-    // Insert verification tracking record
-    // We update on conflict to allow them to correct if needed, but uniqueness on hash applies.
+    // Insert verification tracking record with pending admin review
     const { error: insertError } = await supabase
        .from('verifications')
        .upsert({
           profile_id: profile.id,
           [type === 'nin' ? 'nin_hash' : 'bvn_hash']: generatedHash,
-          [type === 'nin' ? 'nin_verified_at' : 'bvn_verified_at']: new Date().toISOString(),
+          [type === 'nin' ? 'nin_verified_at' : 'bvn_verified_at']: null, // Set after admin approval
           provider: provider,
-          verified: true
+          verified: false,
+          manual_review_required: true,
+          manual_review_completed: false,
        }, {
           onConflict: 'profile_id'
        })
@@ -70,17 +71,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to store verification securely." }, { status: 500 })
     }
 
-    // Automatically boost their Badge Level to 0 if they were unverified
-    let newLevel = profile.badge_level;
-    if (!newLevel || newLevel === 'level_0_unverified') {
-        newLevel = 'level_0_unverified'; // Ensure type match
-        await supabase
-           .from('profiles')
-           .update({ badge_level: newLevel })
-           .eq('id', profile.id)
-    }
+    // Badge upgrade happens when admin approves the verification
 
-    return NextResponse.json({ success: true, message: "Identity anchored securely." })
+    return NextResponse.json({ success: true, message: "Identity submitted for review. You'll be notified once verified." })
 
   } catch (err: any) {
     console.error("Identity Verification Error", err)
