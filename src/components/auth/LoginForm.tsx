@@ -177,6 +177,16 @@ export default function LoginForm() {
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+
+            {/* Forgot password link */}
+            <div className="flex justify-end -mt-2">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-bold text-primary/70 hover:text-primary transition-colors hover:underline"
+              >
+                Forgot password?
+              </Link>
+            </div>
           </div>
 
           {errorMsg && <p className="text-sm font-bold text-error text-center bg-error/5 py-2 rounded-xl border border-error/10">{errorMsg}</p>}
