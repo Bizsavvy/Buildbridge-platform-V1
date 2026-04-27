@@ -71,7 +71,7 @@ export function Hero() {
              className="text-lg md:text-xl font-medium text-on-surface-variant leading-relaxed max-w-2xl mx-auto mb-12"
            >
              Join a community of thousands backing the dreams of verified tradespeople. 
-             From tailors to mechanics—your capital builds lives and legacies.
+             From tailors to mechanics, your capital builds lives and legacies.
            </motion.p>
 
            {/* Hero Buttons */}

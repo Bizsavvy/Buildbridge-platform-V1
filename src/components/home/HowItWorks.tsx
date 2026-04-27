@@ -18,7 +18,7 @@ const steps = [
   {
     icon: Rocket,
     title: "Funds Arrive (48hrs)",
-    description: "Once funded, money goes straight to you. Share proof-of-use to close the loop.",
+    description: "Once funded, money goes straight to you. Share proof of use to close the loop.",
   },
 ]
 
