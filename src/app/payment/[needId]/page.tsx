@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import { createClient } from "@/lib/supabase/server"
 import { ChevronLeft, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
