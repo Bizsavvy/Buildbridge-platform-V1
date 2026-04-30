@@ -5,55 +5,60 @@ import { ImpactHero } from "@/components/impact/ImpactHero"
 import { ImpactCTA } from "@/components/impact/ImpactCTA"
 import { IMPACT_STORIES } from "@/lib/impact-stories"
 import { createClient } from "@/lib/supabase/server"
+import { getCachedData } from "@/lib/redis"
 
 export const metadata = {
   title: "The Impact Wall | BuildBridge Success Stories",
   description: "Witness the power of community-backed growth. See real stories of Nigerian tradespeople reaching their potential.",
 }
 
-// Disable all fetch caching for this route so Supabase queries are always fresh
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
-
 export default async function ImpactPage() {
-  // Fetch real submissions from the database
+  // Fetch real submissions from the database using Redis cache (30s TTL)
   let dbSubmissions: any[] = []
   try {
-    const supabase = await createClient()
-    const { data, error } = await supabase
-      .from('impact_wall_submissions')
-      .select(`
-        id,
-        caption,
-        photo_url,
-        video_url,
-        opted_in_at,
-        moderation_status,
-        published_at,
-        need_id,
-        profile_id,
-        profiles:profile_id (
-          id,
-          full_name,
-          trade_category,
-          location_lga,
-          location_state,
-          badge_level,
-          photo_url,
-          years_experience
-        ),
-        needs:need_id (
-          item_name,
-          funded_amount,
-          pledge_count,
-          proof_photo_url
-        )
-      `)
-      .order('opted_in_at', { ascending: false })
+    const data = await getCachedData(
+      'impact:submissions:feed',
+      async () => {
+        console.log("Fetching impact wall submissions from Supabase...")
+        const supabase = await createClient()
+        const { data, error } = await supabase
+          .from('impact_wall_submissions')
+          .select(`
+            id,
+            caption,
+            photo_url,
+            video_url,
+            opted_in_at,
+            moderation_status,
+            published_at,
+            need_id,
+            profile_id,
+            profiles:profile_id (
+              id,
+              full_name,
+              trade_category,
+              location_lga,
+              location_state,
+              badge_level,
+              photo_url,
+              years_experience
+            ),
+            needs:need_id (
+              item_name,
+              funded_amount,
+              pledge_count,
+              proof_photo_url
+            )
+          `)
+          .order('opted_in_at', { ascending: false })
 
-    console.log("IMPACT WALL DATA:", data, "ERROR:", error)
+        if (error) throw error;
+        return data || []
+      },
+      30 // Cache for 30 seconds
+    )
 
-    if (data) {
+    if (data && data.length > 0) {
       // Include all submissions (pending and approved) so users see their own right away
       dbSubmissions = data.map((sub: any) => ({
         id: sub.id,

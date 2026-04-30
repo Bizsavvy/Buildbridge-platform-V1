@@ -6,7 +6,7 @@ import { NeedCard, NeedCardSkeleton } from "@/components/ui/NeedCard"
 import { EmptyState } from "@/components/ui/EmptyState"
 import { BrowseFilters } from "@/components/browse/BrowseFilters"
 import { BrowseSort, type SortOption } from "@/components/browse/BrowseSort"
-import { createClient } from "@/lib/supabase/client"
+import { getNeeds } from "./actions"
 import { Search, MapPin, Sparkles, ArrowRight, X } from "lucide-react"
 import Link from "next/link"
 
@@ -189,38 +189,10 @@ export default function BrowsePage() {
   const fetchNeeds = React.useCallback(async () => {
     setLoading(true)
 
-    // 1. Fetch real active needs from Supabase
+    // 1. Fetch real active needs via Server Action (which uses Redis caching)
     let realNeeds: any[] = []
     try {
-      const supabase = createClient()
-      const { data, error } = await supabase
-        .from('needs')
-        .select(`
-          *,
-          profiles:profile_id (
-            id,
-            full_name,
-            trade_category,
-            location_lga,
-            location_state,
-            badge_level,
-            photo_url,
-            vouch_count
-          )
-        `)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-
-      if (!error && data) {
-        realNeeds = data.map((n: any) => ({
-          ...n,
-          _isReal: true, // tag so we can rank them higher
-          profile: n.profiles ? {
-            ...n.profiles,
-            name: n.profiles.full_name,
-          } : undefined,
-        }))
-      }
+      realNeeds = await getNeeds()
     } catch (err) {
       console.error("Failed to fetch real needs:", err)
     }

@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { invalidateCache } from "@/lib/redis"
 
 export async function submitToImpactWallAction(formData: FormData) {
   try {
@@ -65,6 +66,9 @@ export async function submitToImpactWallAction(formData: FormData) {
       return { success: false, error: `Failed to submit to Impact Wall: ${insertError.message || insertError.details || JSON.stringify(insertError)}` }
     }
 
+    // Clear the Redis cache for the impact feed so it updates instantly
+    await invalidateCache('impact:submissions:feed')
+    
     // Skip revalidatePath — client-side refresh handles data reload after the modal closes.
     
     return { success: true, message: "Story submitted for moderation! It will appear on the wall soon." }

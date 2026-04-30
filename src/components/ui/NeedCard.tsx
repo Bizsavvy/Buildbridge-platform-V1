@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
+import Image from "next/image"
+import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { Card } from "./Card"
 import { ProgressBar } from "./ProgressBar"
@@ -156,10 +157,12 @@ export function NeedCard({ need, className, onClick, onDelete, onEdit, isDashboa
       {/* Visual Header */}
       <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface-variant/30">
         {need.photo_url && !imageError ? (
-          <img
+          <Image
             src={need.photo_url}
             alt={need.item_name}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
             onError={() => setImageError(true)}
           />
         ) : (
@@ -260,11 +263,13 @@ export function NeedCard({ need, className, onClick, onDelete, onEdit, isDashboa
       <div className="flex flex-col flex-grow p-6 gap-6">
         {/* Artisan Info */}
         <div className="flex items-end gap-4">
-          <div className="relative shrink-0">
-            <img
+          <div className="relative shrink-0 h-12 w-12 rounded-2xl overflow-hidden border-2 border-white shadow-md">
+            <Image
               src={need.profile?.photo_url || `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%23e9ddff' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif' font-size='40' font-weight='bold' fill='%236750A4'%3E${(need.profile?.full_name || need.profile?.name || 'A').charAt(0)}%3C/text%3E%3C/svg%3E`}
               alt={need.profile?.full_name || need.profile?.name || "Tradesperson"}
-              className="h-12 w-12 rounded-2xl object-cover border-2 border-white shadow-md"
+              fill
+              sizes="48px"
+              className="object-cover"
             />
             {need.profile?.badge_level === 'level_4_platform_verified' && (
               <div className="absolute -bottom-1 -right-1 rounded-full p-1 bg-green-500 border-2 border-white shadow-lg">
