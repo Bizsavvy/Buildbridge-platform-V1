@@ -483,7 +483,6 @@ export default function NeedDetailPage() {
                 daysSinceFunded={daysSinceFunded}
                 onSuccess={() => { refreshNeed(); setIsSubmittingProof(false) }}
                 onClose={() => setIsSubmittingProof(false)}
-                onReadyForImpactWall={() => setIsSubmittingImpact(true)}
               />
             </motion.div>
           </div>

@@ -550,10 +550,6 @@ function DashboardContent() {
                   itemName={selectedNeedForProof.item_name}
                   onSuccess={() => { fetchDashboardData(); setIsSubmittingProof(false); }}
                   onClose={() => setIsSubmittingProof(false)}
-                  onReadyForImpactWall={() => {
-                    setSelectedNeedForImpact(selectedNeedForProof);
-                    setIsSubmittingImpact(true);
-                  }}
                />
             </motion.div>
           </div>

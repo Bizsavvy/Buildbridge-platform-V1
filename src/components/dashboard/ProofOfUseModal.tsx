@@ -28,8 +28,6 @@ interface ProofOfUseModalProps {
   daysSinceFunded?: number
   onSuccess: () => void
   onClose: () => void
-  /** Called after proof is submitted, so parent can open Impact Wall opt-in */
-  onReadyForImpactWall?: () => void
 }
 
 const NUDGE_COPY: Record<number, { title: string; body: string; urgency: "low" | "medium" | "high" }> = {
@@ -63,7 +61,6 @@ export function ProofOfUseModal({
   daysSinceFunded = 0,
   onSuccess,
   onClose,
-  onReadyForImpactWall,
 }: ProofOfUseModalProps) {
   const [step, setStep] = useState(0) // 0: Intro, 1: Upload, 2: Success
   const [loading, setLoading] = useState(false)
@@ -371,14 +368,29 @@ export function ProofOfUseModal({
                 The Impact Wall is a public showcase — your story could inspire the next tradesperson to ask for help and the next backer to give.
               </p>
               <Button
-                onClick={() => {
-                  onSuccess()
-                  onClose()
-                  onReadyForImpactWall?.()
+                isLoading={loading}
+                onClick={async () => {
+                  setLoading(true)
+                  try {
+                    const impactFormData = new FormData()
+                    impactFormData.append("need_id", needId)
+                    impactFormData.append("caption", caption) // using the same caption they just wrote
+                    impactFormData.append("public_display_consent", "on")
+                    
+                    // Import dynamically or ensure submitToImpactWallAction is available
+                    const { submitToImpactWallAction } = await import("@/app/actions/impact")
+                    await submitToImpactWallAction(impactFormData)
+                  } catch (err) {
+                    console.error("Failed to auto-submit to impact wall", err)
+                  } finally {
+                    setLoading(false)
+                    onSuccess()
+                    onClose()
+                  }
                 }}
                 className="w-full h-12 rounded-xl text-sm font-black"
               >
-                Share on Impact Wall
+                {loading ? "Sharing..." : "Share on Impact Wall"}
               </Button>
             </div>
 

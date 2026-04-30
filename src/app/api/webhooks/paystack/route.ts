@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
         const { notifyPledgeReceived } = await import("@/lib/notifications")
         const { checkAndTriggerMilestones } = await import("@/lib/milestones")
 
-        await notifyPledgeReceived(profile.user_id, totalPledgeKobo, need_id, reference)
+        await notifyPledgeReceived(profile.user_id, safePledgeKobo, need_id, reference)
         await checkAndTriggerMilestones(need_id)
       }
     } catch (notifErr) {
