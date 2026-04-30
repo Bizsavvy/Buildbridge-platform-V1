@@ -53,7 +53,8 @@ export async function submitToImpactWallAction(formData: FormData) {
         caption: caption,
         public_display_consent: publicDisplayConsent,
         opted_in_at: new Date().toISOString(),
-        moderation_status: 'pending' // Defaults to pending for safety
+        moderation_status: 'approved',   // Auto-approve — admin can flag/reject later
+        published_at: new Date().toISOString(),  // Publish immediately so it shows on Impact Wall
       })
 
     if (insertError) {

@@ -11,12 +11,16 @@ export const metadata = {
   description: "Witness the power of community-backed growth. See real stories of Nigerian tradespeople reaching their potential.",
 }
 
+// Disable all fetch caching for this route so Supabase queries are always fresh
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function ImpactPage() {
   // Fetch real submissions from the database
   let dbSubmissions: any[] = []
   try {
     const supabase = await createClient()
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('impact_wall_submissions')
       .select(`
         id,
@@ -47,6 +51,8 @@ export default async function ImpactPage() {
       `)
       .order('opted_in_at', { ascending: false })
 
+    console.log("IMPACT WALL DATA:", data, "ERROR:", error)
+
     if (data) {
       // Include all submissions (pending and approved) so users see their own right away
       dbSubmissions = data.map((sub: any) => ({
@@ -69,6 +75,8 @@ export default async function ImpactPage() {
   } catch (err) {
     console.error("Could not fetch real submissions:", err)
   }
+  
+  console.log("DB Submissions fetched:", dbSubmissions.length);
 
   // Convert mock stories to the format ImpactGrid expects
   const mockSubmissions = IMPACT_STORIES.map(story => ({
