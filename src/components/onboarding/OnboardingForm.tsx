@@ -62,6 +62,8 @@ export function OnboardingForm() {
   const [isGeneratingStory, setIsGeneratingStory] = useState(false)
   const [storyMethod, setStoryMethod] = useState<"write" | "ai">("write")
   const [carouselSlide, setCarouselSlide] = useState(0)
+  
+  const topRef = useRef<HTMLDivElement>(null)
 
   const voiceInput = useVoiceInput()
 
@@ -136,6 +138,31 @@ export function OnboardingForm() {
     }
   }, [])
 
+  // Sync voice transcript with story
+  const storyBaseRef = useRef("")
+  useEffect(() => {
+    if (voiceInput.isListening && voiceInput.transcript) {
+      // Update formData.story with base + current transcript
+      const newStory = `${storyBaseRef.current} ${voiceInput.transcript}`.trim()
+      if (formData.story !== newStory) {
+        setFormData(prev => ({ ...prev, story: newStory }))
+      }
+    }
+  }, [voiceInput.transcript, voiceInput.isListening])
+
+  // Scroll to top when step changes, accounting for sticky header and Framer Motion exit animation
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (topRef.current) {
+        const y = topRef.current.getBoundingClientRect().top + window.scrollY - 120; // 120px offset for sticky navbar
+        window.scrollTo({ top: y, behavior: "smooth" })
+      } else {
+        window.scrollTo({ top: 0, behavior: "smooth" })
+      }
+    }, 150) // 150ms allows Framer Motion exit animation to clear the old DOM node
+    return () => clearTimeout(timer)
+  }, [currentStep])
+
   // Redirect to dashboard if user already has a profile (already completed onboarding)
   useEffect(() => {
     const checkProfile = async () => {
@@ -162,18 +189,6 @@ export function OnboardingForm() {
     checkProfile()
   }, [supabase, router])
 
-
-  // Sync voice transcript with story
-  const storyBaseRef = useRef("")
-  useEffect(() => {
-    if (voiceInput.isListening && voiceInput.transcript) {
-      // Update formData.story with base + current transcript
-      const newStory = `${storyBaseRef.current} ${voiceInput.transcript}`.trim()
-      if (formData.story !== newStory) {
-        setFormData(prev => ({ ...prev, story: newStory }))
-      }
-    }
-  }, [voiceInput.transcript, voiceInput.isListening])
 
   // Check for OAuth errors from hash fragment
   useEffect(() => {
@@ -204,14 +219,12 @@ export function OnboardingForm() {
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(prev => prev + 1)
-      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
   const prevStep = () => {
     if (currentStep > 0) {
       setCurrentStep(prev => prev - 1)
-      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
@@ -1003,7 +1016,7 @@ export function OnboardingForm() {
   }
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center relative overflow-hidden bg-surface py-20 px-4">
+    <div ref={topRef} className="min-h-screen w-full flex flex-col items-center relative overflow-hidden bg-surface py-20 px-4">
       <div className="fixed top-0 left-0 w-full h-[600px] bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 
       <div className="w-full max-w-7xl relative z-10">

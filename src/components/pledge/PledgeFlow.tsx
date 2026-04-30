@@ -133,6 +133,8 @@ export function PledgeFlow({ needId, needName, tradespersonName, goalAmount, alw
         metadata: {
           need_id: needId,
           backer_user_id: user?.id || 'guest',
+          pledge_kobo: amountKobo,   // artisan's portion — excludes tip
+          tip_kobo: tipKobo,         // BuildBridge tip
         },
         callback: function (response: any) {
           clearTimeout(timeout)
@@ -141,18 +143,29 @@ export function PledgeFlow({ needId, needName, tradespersonName, goalAmount, alw
           setLoading(false)
 
           if (response.reference) {
-            fetch("/api/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                reference: response.reference,
-                need_id: needId,
-                message: message.slice(0, 500) || undefined,
-                tip_kobo: tipKobo,
-              }),
-            }).catch(function (err) {
-              console.error("Pledge verification fallback failed:", err)
-            })
+            // Use an async IIFE — Paystack v1 requires a plain function, not async function
+            ;(async () => {
+              try {
+                const verifyRes = await fetch("/api/payment/verify", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    reference: response.reference,
+                    need_id: needId,
+                    message: message.slice(0, 500) || undefined,
+                    tip_kobo: tipKobo,
+                  }),
+                })
+                const verifyData = await verifyRes.json()
+                if (!verifyData.success) {
+                  console.error("[PledgeFlow] Verification failed:", verifyData.error)
+                } else {
+                  console.log("[PledgeFlow] Pledge verified and recorded ✓")
+                }
+              } catch (err) {
+                console.error("[PledgeFlow] Verify request failed:", err)
+              }
+            })()
           }
         },
         onClose: function () {
