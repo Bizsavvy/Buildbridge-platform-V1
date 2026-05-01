@@ -2,7 +2,6 @@ import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { ChevronLeft, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { PledgeFlow } from "@/components/pledge/PledgeFlow"
 import { notFound } from "next/navigation"
 
